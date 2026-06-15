@@ -46,6 +46,9 @@ jobs:
 
           # 2) Copy the runtime into ./runtime and install deps into it.
           rm -rf runtime && cp -r "$ROOT" runtime
+          # uv's standalone Python is marked externally-managed (PEP 668); drop the
+          # marker so pip may install our dependencies into the bundled runtime.
+          find runtime -name 'EXTERNALLY-MANAGED' -delete || true
           "$RTPY" -m ensurepip --upgrade
           "$RTPY" -m pip install --upgrade pip
           "$RTPY" -m pip install -r requirements.txt
