@@ -1,0 +1,24 @@
+# Python runtime / deps (bundled only in release archives)
+.venv/
+runtime/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Build output
+dist/
+*.tar.gz
+*.zip
+
+# Generated at runtime — never commit
+certs/
+logs/
+models/*.joblib
+
+# Local config holds secrets (password hash, cookie secret) — ship the example instead
+config/settings.json
+
+# Personal policies — only the default ships
+policies/*.json
+!policies/default.json

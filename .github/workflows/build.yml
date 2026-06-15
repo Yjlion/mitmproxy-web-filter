@@ -1,0 +1,90 @@
+name: build-archives
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to attach archives to a Release on tag builds
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x86_64
+          - os: windows-latest
+            target: windows-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build self-contained archive
+        shell: bash
+        env:
+          PY_VERSION: "3.12"
+          APPDIR: web-filter-proxy
+        run: |
+          set -euxo pipefail
+
+          # 1) Get a relocatable standalone CPython (python-build-standalone).
+          uv python install "$PY_VERSION"
+          PYEXE="$(uv python find "$PY_VERSION")"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ROOT="$(dirname "$PYEXE")"          # python.exe sits at the install root
+            RTPY="runtime/python.exe"
+          else
+            ROOT="$(dirname "$(dirname "$PYEXE")")"   # <root>/bin/python3
+            RTPY="runtime/bin/python3"
+          fi
+
+          # 2) Copy the runtime into ./runtime and install deps into it.
+          rm -rf runtime && cp -r "$ROOT" runtime
+          "$RTPY" -m ensurepip --upgrade
+          "$RTPY" -m pip install --upgrade pip
+          "$RTPY" -m pip install -r requirements.txt
+
+          # 3) Assemble the distribution directory.
+          rm -rf dist && mkdir -p "dist/$APPDIR"
+          cp -r proxy management shared scripts config policies \
+                requirements.txt CLAUDE.md README.md start.sh start.bat \
+                install.sh install.bat "dist/$APPDIR/"
+          mv runtime "dist/$APPDIR/runtime"
+          # start from sane defaults; never ship a real (secret-bearing) settings.json
+          cp config/settings.example.json "dist/$APPDIR/config/settings.json"
+          mkdir -p "dist/$APPDIR/certs" "dist/$APPDIR/logs"
+          # strip caches
+          find "dist/$APPDIR" -name '__pycache__' -type d -prune -exec rm -rf {} + || true
+
+          # 4) Archive (.tar.gz on Linux, .zip on Windows).
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            powershell -Command "Compress-Archive -Path 'dist/$APPDIR' -DestinationPath 'web-filter-proxy-${{ matrix.target }}.zip' -Force"
+          else
+            tar -C dist -czf "web-filter-proxy-${{ matrix.target }}.tar.gz" "$APPDIR"
+          fi
+          ls -lh web-filter-proxy-${{ matrix.target }}.* || true
+
+      - name: Smoke-test the bundled runtime (imports)
+        shell: bash
+        run: |
+          set -eux
+          if [ "$RUNNER_OS" = "Windows" ]; then RTPY="dist/web-filter-proxy/runtime/python.exe"; else RTPY="dist/web-filter-proxy/runtime/bin/python3"; fi
+          "$RTPY" -c "import mitmproxy, fastapi, uvicorn, httpx, dns, nudenet, PIL, bs4; print('bundled imports OK')"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-filter-proxy-${{ matrix.target }}
+          path: web-filter-proxy-${{ matrix.target }}.*
+
+      - name: Attach to Release (tag builds)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: web-filter-proxy-${{ matrix.target }}.*

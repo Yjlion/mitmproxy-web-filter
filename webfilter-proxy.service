@@ -1,0 +1,23 @@
+[Unit]
+Description=WebFilter Proxy (mitmproxy filtering proxy + management UI)
+Documentation=file:/home/leo/web-filter-proxy/CLAUDE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=leo
+Group=leo
+WorkingDirectory=/home/leo/web-filter-proxy
+ExecStart=/home/leo/web-filter-proxy/start.sh
+Restart=on-failure
+RestartSec=3
+# mitmproxy holds 2 file descriptors per connection (client + upstream);
+# raise the limit so busy browsers don't exhaust it.
+LimitNOFILE=65536
+# Allow children (uvicorn + mitmdump) time to shut down on stop/restart.
+TimeoutStopSec=15
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

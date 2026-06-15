@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Policy Editor — WebFilter Proxy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .toggle { appearance: none; width: 36px; height: 20px; background: #d1d5db; border-radius: 10px; position: relative; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+    .toggle:checked { background: #2563eb; }
+    .toggle::after { content:''; position:absolute; left:2px; top:2px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform .2s; }
+    .toggle:checked::after { transform: translateX(16px); }
+    .section { @apply bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden; }
+    .section-header { @apply flex items-center justify-between px-6 py-4 cursor-pointer select-none; }
+    .tag { @apply inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-md; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen" x-data="editor()" x-init="init()">
+
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0">
+      <div class="px-6 py-5 border-b border-gray-700">
+        <div class="flex items-center gap-2">
+          <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span class="font-bold text-sm">WebFilter Proxy</span>
+        </div>
+      </div>
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </a>
+        <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Policies
+        </a>
+        <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 overflow-auto">
+      <div class="px-8 py-6 max-w-3xl mx-auto">
+        <div class="mb-6 flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900" x-text="isNew ? 'New Policy' : 'Edit Policy'"></h1>
+            <p class="text-sm text-gray-500 mt-1">Configure filtering rules for a set of IP addresses</p>
+          </div>
+          <div class="flex gap-3">
+            <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</a>
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Policy</button>
+          </div>
+        </div>
+
+        <!-- Alert -->
+        <div x-show="alert" x-cloak class="mb-4 px-4 py-3 rounded-lg text-sm"
+             :class="alertType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'"
+             x-text="alert"></div>
+
+        <!-- Basic info -->
+        <div class="section">
+          <div class="px-6 py-4">
+            <h2 class="text-sm font-semibold text-gray-900 mb-4">Basic Information</h2>
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Policy Name</label>
+                <input x-model="policy.name" type="text" placeholder="e.g. kids, office, guest"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Source IP Addresses / CIDR Ranges</label>
+                <div @click="$refs.ipField.focus()" class="border border-gray-200 rounded-lg px-3 py-2 min-h-10 flex flex-wrap gap-1 items-center focus-within:ring-2 focus-within:ring-blue-500 cursor-text">
+                  <template x-for="(ip, i) in policy.source_ips" :key="i">
+                    <span class="tag">
+                      <span x-text="ip"></span>
+                      <button type="button" @click.stop="removeIp(i)" class="text-gray-400 hover:text-red-500">×</button>
+                    </span>
+                  </template>
+                  <input x-ref="ipField" x-model="ipInput" @keydown.enter.prevent="addIp()" @keydown.comma.prevent="addIp()"
+                         @blur="addIp()" placeholder="192.168.1.0/24, 10.0.0.5, 2001:db8::/32, ::1 — press Enter"
+                         class="flex-1 min-w-48 text-sm outline-none bg-transparent" />
+                </div>
+                <p class="text-xs text-gray-400 mt-1">
+                  IPv4 and IPv6 supported. Examples: <span class="font-mono">192.168.1.0/24</span>, <span class="font-mono">10.0.0.5</span>,
+                  <span class="font-mono">2001:db8::/32</span>, <span class="font-mono">fe80::1</span>. Leave empty to match all clients (catch-all policy).
+                </p>
+                <p x-show="ipError" x-cloak class="text-xs text-red-500 mt-1" x-text="ipError"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- URL Filter -->
+        <div class="section">
+          <div class="section-header" @click="open.url = !open.url">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.url_filter.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">URL Filter</div>
+                <div class="text-xs text-gray-500">Block or allow specific URLs and domains</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.url ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.url" class="px-6 pb-5 border-t border-gray-100 pt-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-medium text-gray-700 block mb-1">Allow List <span class="text-gray-400">(checked first, bypasses all other filters)</span></label>
+                <textarea x-model="allowText" @input="policy.url_filter.allow = allowText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                          rows="5" placeholder="allowed.com&#10;*.trusted.org"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-gray-700 block mb-1">Block List</label>
+                <textarea x-model="blockText" @input="policy.url_filter.block = blockText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                          rows="5" placeholder="bad-site.com&#10;*.gambling.net"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOH -->
+        <div class="section">
+          <div class="section-header" @click="open.doh = !open.doh">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.doh.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">DNS over HTTPS (DOH)</div>
+                <div class="text-xs text-gray-500">Block domains via a DOH resolver (e.g. family/malware filters)</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.doh ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.doh" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">DOH Server URL</label>
+              <input type="text" x-model="policy.doh.server" list="doh-presets"
+                     placeholder="https://your-doh-server/dns-query"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <datalist id="doh-presets">
+                <option value="https://1.1.1.3/dns-query">Cloudflare Family — blocks malware + adult</option>
+                <option value="https://1.1.1.2/dns-query">Cloudflare Security — blocks malware</option>
+                <option value="https://doh.cleanbrowsing.org/doh/family-filter/">CleanBrowsing Family</option>
+                <option value="https://doh.cleanbrowsing.org/doh/adult-filter/">CleanBrowsing Adult</option>
+                <option value="https://doh.cleanbrowsing.org/doh/security-filter/">CleanBrowsing Security</option>
+                <option value="https://dns.adguard-dns.com/dns-query">AdGuard Default</option>
+                <option value="https://family.adguard-dns.com/dns-query">AdGuard Family</option>
+              </datalist>
+              <p class="text-xs text-gray-400 mt-1">Pick a preset or type any standard DoH endpoint (RFC 8484), e.g. NextDNS <span class="font-mono">https://dns.nextdns.io/&lt;your-id&gt;</span>. A domain is blocked when the resolver returns NXDOMAIN or sinkholes it (0.0.0.0 / ::).</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+                <textarea x-model="dohExcludeText" @input="policy.doh.exclude = dohExcludeText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                          rows="3" placeholder="school.edu&#10;work-intranet.local"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-gray-700 block mb-1">Only Apply To <span class="text-gray-400">(leave blank for all)</span></label>
+                <textarea x-model="dohIncludeText" @input="policy.doh.include_only = dohIncludeText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                          rows="3" placeholder="specific-domain.com"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SafeSearch -->
+        <div class="section">
+          <div class="section-header" @click="open.safe = !open.safe">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.safesearch.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">SafeSearch</div>
+                <div class="text-xs text-gray-500">Enforce safe search on Google, Bing, DuckDuckGo, Yahoo</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.safe ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.safe" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div class="space-y-2">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_images_tab" />
+                <span class="text-sm text-gray-700">Block image search tab</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_videos_tab" />
+                <span class="text-sm text-gray-700">Block video search tab</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_ai_tab" />
+                <span class="text-sm text-gray-700">Block AI search (Gemini, Copilot, etc.)</span>
+              </label>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <input x-model="safeExcludeText" @input="policy.safesearch.exclude = safeExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
+                     placeholder="trusted-engine.com, other.com"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- YouTube -->
+        <div class="section">
+          <div class="section-header" @click="open.yt = !open.yt">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.youtube.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">YouTube Channel Filter</div>
+                <div class="text-xs text-gray-500">Block or allow specific YouTube channels</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.yt ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.yt" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.youtube.mode" value="blacklist" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Blacklist (block listed channels)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.youtube.mode" value="whitelist" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Whitelist (only allow listed channels)</span>
+              </label>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Channels <span class="text-gray-400">(one per line — channel ID, @handle, or display name)</span></label>
+              <textarea x-model="ytChannelsText" @input="policy.youtube.channels = ytChannelsText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                        rows="5" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx&#10;@MrBeast&#10;Some Channel Name"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              <p class="text-xs text-gray-400 mt-1">Requires MITM active for youtube.com. Accepts channel IDs (UC…), @handles, or display names (case-insensitive). Name/handle matching depends on what YouTube returns; channel ID is the most reliable.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Classifier -->
+        <div class="section">
+          <div class="section-header" @click="open.text = !open.text">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.text_classifier.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">Adult Text Classifier</div>
+                <div class="text-xs text-gray-500">Detect and block pages with adult text content</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.text ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.text" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">
+                Threshold: <span class="font-mono" x-text="policy.text_classifier.threshold"></span>
+              </label>
+              <input type="range" min="0.5" max="1" step="0.05" x-model="policy.text_classifier.threshold"
+                     class="w-full accent-blue-600" />
+              <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span>More sensitive (0.5)</span><span>More precise (1.0)</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <input x-model="textExcludeText" @input="policy.text_classifier.exclude = textExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
+                     placeholder="medical-site.com, biology-class.edu"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Classifier -->
+        <div class="section">
+          <div class="section-header" @click="open.img = !open.img">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" class="toggle" x-model="policy.image_classifier.enabled" @click.stop />
+              <div>
+                <div class="text-sm font-semibold text-gray-900">Image Classifier (NSFW)</div>
+                <div class="text-xs text-gray-500">Detect adult images and blur or block them</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.img ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.img" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div class="flex flex-wrap gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.image_classifier.action" value="blur" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Blur entire image</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.image_classifier.action" value="checkerboard" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Checkerboard placeholder</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.image_classifier.action" value="block" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Replace with blank image</span>
+              </label>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">
+                Detection Threshold: <span class="font-mono" x-text="policy.image_classifier.threshold"></span>
+              </label>
+              <input type="range" min="0.15" max="0.9" step="0.05" x-model.number="policy.image_classifier.threshold"
+                     class="w-full accent-blue-600" />
+              <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span>Catch more (0.15)</span><span>Fewer false positives (0.9)</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">~0.4 recommended. Thumbnails often score low; higher values miss them.</p>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <input x-model="imgExcludeText" @input="policy.image_classifier.exclude = imgExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
+                     placeholder="art-museum.org, medical.edu"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <p class="text-xs text-gray-400">Requires MITM active for the site. NudeNet model downloads ~90 MB on first use.</p>
+          </div>
+        </div>
+
+        <!-- MITM Control -->
+        <div class="section">
+          <div class="section-header" @click="open.mitm = !open.mitm">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-5"></div><!-- spacer for toggle alignment -->
+              <div>
+                <div class="text-sm font-semibold text-gray-900">MITM Control</div>
+                <div class="text-xs text-gray-500">Control which sites are TLS-intercepted</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.mitm ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.mitm" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.mitm.mode" value="exclude" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Exclude (MITM all except listed sites)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" x-model="policy.mitm.mode" value="include" class="text-blue-600" />
+                <span class="text-sm text-gray-700">Include (only MITM listed sites)</span>
+              </label>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Sites <span class="text-gray-400">(one per line)</span></label>
+              <textarea x-model="mitmSitesText" @input="policy.mitm.sites = mitmSitesText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                        rows="4" placeholder="mybank.com&#10;health-portal.com"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Block Page -->
+        <div class="section">
+          <div class="section-header" @click="open.bp = !open.bp">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-5"></div>
+              <div>
+                <div class="text-sm font-semibold text-gray-900">Block Page</div>
+                <div class="text-xs text-gray-500">Customize the message shown when content is blocked</div>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.bp ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open.bp" class="px-6 pb-5 border-t border-gray-100 pt-4">
+            <label class="text-xs font-medium text-gray-700 block mb-1">Custom Message</label>
+            <textarea x-model="policy.block_page.message" rows="3"
+                      placeholder="This content has been blocked by your network policy."
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Bottom save bar -->
+        <div class="flex justify-end gap-3 mt-2 mb-8">
+          <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</a>
+          <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Policy</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Accepts an IPv4/IPv6 address or CIDR range. Permissive but rejects
+    // obvious garbage so a typo doesn't silently become a dead source rule.
+    function isValidIpOrCidr(value) {
+      let host = value, prefix = null;
+      const slash = value.indexOf('/');
+      if (slash !== -1) {
+        host = value.slice(0, slash);
+        prefix = value.slice(slash + 1);
+        if (!/^\d+$/.test(prefix)) return false;
+      }
+      const isV4 = /^(\d{1,3})(\.\d{1,3}){3}$/.test(host) &&
+                   host.split('.').every(o => +o >= 0 && +o <= 255);
+      // IPv6: hex groups with :: compression, optional zone id.
+      const isV6 = /^[0-9a-fA-F:]+$/.test(host) && host.includes(':') &&
+                   (host.match(/::/g) || []).length <= 1;
+      if (slash !== -1) {
+        const p = +prefix;
+        if (isV4 && p >= 0 && p <= 32) return true;
+        if (isV6 && p >= 0 && p <= 128) return true;
+        return false;
+      }
+      return isV4 || isV6;
+    }
+
+    function editor() {
+      const params = new URLSearchParams(location.search);
+      const editName = params.get('name');
+      const isNew = params.get('action') === 'new' || !editName;
+
+      return {
+        isNew,
+        editName,
+        policy: defaultPolicy(),
+        alert: '',
+        alertType: 'success',
+        ipInput: '',
+        ipError: '',
+        open: { url: false, doh: false, safe: false, yt: false, text: false, img: false, mitm: false, bp: false },
+        // text area mirrors
+        allowText: '', blockText: '',
+        dohExcludeText: '', dohIncludeText: '',
+        safeExcludeText: '',
+        ytChannelsText: '',
+        textExcludeText: '',
+        imgExcludeText: '',
+        mitmSitesText: '',
+
+        addIp() {
+          const v = this.ipInput.trim().replace(/,$/, '').trim();
+          this.ipInput = '';
+          if (!v) return;
+          if (!isValidIpOrCidr(v)) {
+            this.ipError = `"${v}" is not a valid IP address or CIDR range`;
+            return;
+          }
+          this.ipError = '';
+          if (!this.policy.source_ips.includes(v)) this.policy.source_ips.push(v);
+        },
+        removeIp(i) {
+          this.policy.source_ips.splice(i, 1);
+        },
+
+        async init() {
+          if (!isNew && editName) {
+            try {
+              const res = await fetch(`/api/policies/${encodeURIComponent(editName)}`);
+              if (res.ok) {
+                this.policy = await res.json();
+                this._syncTextAreas();
+              }
+            } catch (e) { this.showAlert('Failed to load policy', 'error'); }
+          }
+        },
+
+        _syncTextAreas() {
+          this.allowText = (this.policy.url_filter.allow || []).join('\n');
+          this.blockText = (this.policy.url_filter.block || []).join('\n');
+          this.dohExcludeText = (this.policy.doh.exclude || []).join('\n');
+          this.dohIncludeText = (this.policy.doh.include_only || []).join('\n');
+          this.safeExcludeText = (this.policy.safesearch.exclude || []).join(', ');
+          this.ytChannelsText = (this.policy.youtube.channels || []).join('\n');
+          this.textExcludeText = (this.policy.text_classifier.exclude || []).join(', ');
+          this.imgExcludeText = (this.policy.image_classifier.exclude || []).join(', ');
+          this.mitmSitesText = (this.policy.mitm.sites || []).join('\n');
+        },
+
+        async save() {
+          // Commit any IP typed but not yet added (user clicked Save directly).
+          if (this.ipInput.trim()) this.addIp();
+          if (this.ipError) {
+            this.showAlert(this.ipError, 'error'); return;
+          }
+
+          if (!this.policy.name.trim()) {
+            this.showAlert('Policy name is required', 'error'); return;
+          }
+
+          // Trim stray whitespace from the DOH URL (common on paste).
+          this.policy.doh.server = (this.policy.doh.server || '').trim();
+
+          const method = this.isNew ? 'POST' : 'PUT';
+          const url = this.isNew
+            ? '/api/policies'
+            : `/api/policies/${encodeURIComponent(this.editName)}`;
+
+          try {
+            const res = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.policy),
+            });
+            if (res.ok) {
+              this.showAlert('Policy saved successfully', 'success');
+              setTimeout(() => { location.href = 'index.html'; }, 800);
+            } else {
+              const err = await res.json();
+              this.showAlert(err.detail || 'Save failed', 'error');
+            }
+          } catch (e) {
+            this.showAlert('Network error: ' + e.message, 'error');
+          }
+        },
+
+        showAlert(msg, type) {
+          this.alert = msg;
+          this.alertType = type;
+          setTimeout(() => { this.alert = ''; }, 4000);
+        },
+      };
+    }
+
+    function defaultPolicy() {
+      return {
+        name: '',
+        source_ips: [],
+        url_filter: { enabled: false, allow: [], block: [] },
+        doh: { enabled: false, server: 'https://1.1.1.3/dns-query', exclude: [], include_only: [] },
+        safesearch: { enabled: false, block_images_tab: false, block_videos_tab: false, block_ai_tab: false, exclude: [], include_only: [] },
+        youtube: { enabled: false, mode: 'blacklist', channels: [], exclude: [], include_only: [] },
+        text_classifier: { enabled: false, threshold: 0.8, exclude: [], include_only: [] },
+        image_classifier: { enabled: false, action: 'blur', threshold: 0.4, exclude: [], include_only: [] },
+        mitm: { mode: 'exclude', sites: [] },
+        block_page: { template: 'default', message: '' },
+      };
+    }
+  </script>
+</body>
+</html>

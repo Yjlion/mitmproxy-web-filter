@@ -1,0 +1,23 @@
+# Core proxy
+mitmproxy>=10.3.1
+watchfiles>=0.21.0
+
+# Management API
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+aiofiles>=23.2.1
+
+# Filtering components
+httpx>=0.27.0          # DOH queries
+dnspython>=2.6.0       # RFC 8484 DoH wireformat
+beautifulsoup4>=4.12.0 # HTML text extraction
+Pillow>=10.3.0         # Image blur
+jinja2>=3.1.0          # Block page templates
+
+# Image classifier (downloads ~90 MB model on first use)
+nudenet>=3.4.0
+
+# Optional: ML text classifier (uncomment to enable)
+# scikit-learn>=1.4.0
+# joblib>=1.4.0

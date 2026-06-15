@@ -1,0 +1,17 @@
+{
+  "proxy_listen": [
+    "0.0.0.0:8080"
+  ],
+  "mgmt_host": "0.0.0.0",
+  "mgmt_port": 8000,
+  "cert_dir": "./certs",
+  "policies_dir": "./policies",
+  "logs_dir": "./logs",
+  "log_blocks": true,
+  "log_requests": true,
+  "request_log_max": 2000,
+  "default_policy": null,
+  "auth_enabled": false,
+  "password_hash": "",
+  "secret_key": ""
+}
