@@ -45,7 +45,10 @@ jobs:
           fi
 
           # 2) Copy the runtime into ./runtime and install deps into it.
-          rm -rf runtime && cp -r "$ROOT" runtime
+          #    -L dereferences symlinks: uv's bin/python3 can be an absolute
+          #    symlink back to the managed install, which would otherwise make
+          #    the "copy" still use the original (externally-managed) stdlib.
+          rm -rf runtime && cp -rL "$ROOT" runtime
           # uv's standalone Python is marked externally-managed (PEP 668); drop the
           # marker so pip may install our dependencies into the bundled runtime.
           find runtime -name 'EXTERNALLY-MANAGED' -delete || true
