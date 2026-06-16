@@ -9,10 +9,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from fastapi import FastAPI, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 
 from management.api.routes import policies, settings as settings_router
-from management.api import auth
+from management.api import auth, pac
 from shared.models import GlobalSettings
 
 _ROOT = Path(__file__).parent.parent.parent
@@ -34,8 +34,12 @@ def _load_settings() -> GlobalSettings:
     return GlobalSettings()
 
 
-# Paths reachable without a session (so the login page can load and submit).
-_PUBLIC_PATHS = {"/login.html", "/api/login", "/api/logout", "/api/auth-status"}
+# Paths reachable without a session (so the login page can load and submit, and
+# so unauthenticated devices can fetch the proxy auto-config file).
+_PUBLIC_PATHS = {
+    "/login.html", "/api/login", "/api/logout", "/api/auth-status",
+    "/proxy.pac", "/wpad.dat", "/wpad.da",
+}
 
 
 @app.middleware("http")
@@ -155,6 +159,44 @@ def _port_open(host: str, port: int) -> bool:
             return True
     except OSError:
         return False
+
+
+def _pac_proxy_host(request: Request, settings: GlobalSettings) -> str:
+    """Address to advertise in the PAC: the configured override, else the host
+    the client used to reach this management server (so the PAC self-adapts)."""
+    configured = (settings.pac_proxy_host or "").strip()
+    if configured:
+        return configured
+    host = (request.url.hostname or request.client.host if request.client else "") or "127.0.0.1"
+    # IPv6 literals must be bracketed in a PROXY directive.
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    return host
+
+
+def _serve_pac(request: Request) -> Response:
+    settings = _load_settings()
+    body = pac.render_pac(
+        _pac_proxy_host(request, settings),
+        settings.primary_proxy_port,
+        settings.pac_direct_hosts,
+    )
+    return Response(content=body, media_type="application/x-ns-proxy-autoconfig")
+
+
+@app.get("/proxy.pac")
+def proxy_pac(request: Request) -> Response:
+    return _serve_pac(request)
+
+
+@app.get("/wpad.dat")
+def wpad_dat(request: Request) -> Response:
+    return _serve_pac(request)
+
+
+@app.get("/wpad.da")
+def wpad_da(request: Request) -> Response:
+    return _serve_pac(request)
 
 
 # Serve management UI as static files — must be last

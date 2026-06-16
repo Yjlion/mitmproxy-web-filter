@@ -122,6 +122,11 @@ class GlobalSettings(BaseModel):
     auth_enabled: bool = False
     password_hash: str = ""
     secret_key: str = ""
+    # Proxy auto-config (PAC / WPAD). pac_proxy_host is the address clients
+    # should be told to use; blank = derive from the request's Host header.
+    # pac_direct_hosts go straight to the internet (no proxy) in the PAC.
+    pac_proxy_host: str = ""
+    pac_direct_hosts: list[str] = Field(default_factory=list)
 
     @model_validator(mode="before")
     @classmethod

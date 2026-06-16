@@ -42,7 +42,10 @@ start.bat
 
 Then:
 1. Open the management UI at **http://localhost:8000**.
-2. Point your device/browser proxy at **`<host>:8080`**.
+2. Point your device/browser proxy at **`<host>:8080`**, or use automatic proxy
+   configuration with **http://`<host>`:8000/proxy.pac** (also served at
+   `/wpad.dat` for WPAD auto-discovery). Set the advertised host and any bypassed
+   hosts under **Settings → Proxy Auto-Config**.
 3. Install the CA certificate (auto-generated in `certs/` on first run) on client
    devices — download it from **Settings → CA Certificate**.
 

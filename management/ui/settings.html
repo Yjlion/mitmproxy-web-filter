@@ -101,6 +101,49 @@
           <p class="text-xs text-gray-400"><span class="font-mono">0.0.0.0</span> = all IPv4 · <span class="font-mono">127.0.0.1</span> = this machine only · <span class="font-mono">::</span> = all IPv6.</p>
         </div>
 
+        <!-- Proxy auto-config (PAC / WPAD) -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Proxy Auto-Config (PAC / WPAD)</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Point client devices at one of these URLs (Settings → Automatic proxy configuration), or set <span class="font-mono">wpad</span> via DHCP/DNS for auto-discovery.</p>
+          </div>
+          <div class="space-y-2">
+            <template x-for="path in ['/proxy.pac', '/wpad.dat']" :key="path">
+              <div class="flex items-center gap-2">
+                <input type="text" readonly :value="pacUrl(path)"
+                       class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono bg-gray-50 text-gray-700" />
+                <button type="button" @click="copyText(pacUrl(path))"
+                        class="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium">Copy</button>
+              </div>
+            </template>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1">Advertised proxy host</label>
+            <input type="text" x-model="settings.pac_proxy_host" placeholder="auto (host clients used to reach this page)"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Leave blank to auto-detect. The PAC uses proxy port <span class="font-mono" x-text="status.proxy_port || '8080'"></span>. For IPv6 literals use brackets, e.g. <span class="font-mono">[fd00::1]</span>.</p>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1">Direct (non-proxied) hosts</label>
+            <div class="space-y-2">
+              <template x-for="(h, i) in settings.pac_direct_hosts" :key="i">
+                <div class="flex items-center gap-2">
+                  <input type="text" x-model="settings.pac_direct_hosts[i]" placeholder="example.com"
+                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <button type="button" @click="settings.pac_direct_hosts.splice(i, 1)"
+                          class="px-2 py-2 text-gray-400 hover:text-red-500" title="Remove">✕</button>
+                </div>
+              </template>
+              <button type="button" @click="settings.pac_direct_hosts.push('')"
+                      class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add direct host</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">These bypass the proxy entirely. Subdomains are included automatically. Localhost and private IP ranges are always direct.</p>
+          </div>
+          <div class="pt-1">
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Settings</button>
+          </div>
+        </div>
+
         <!-- Directories & logging -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
@@ -177,7 +220,8 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [] },
+        status: { proxy_port: null },
         newPassword: '',
         alert: '',
         alertType: 'success',
@@ -188,13 +232,28 @@
             if (res.ok) {
               const s = await res.json();
               if (!Array.isArray(s.proxy_listen) || s.proxy_listen.length === 0) s.proxy_listen = ['0.0.0.0:8080'];
+              if (!Array.isArray(s.pac_direct_hosts)) s.pac_direct_hosts = [];
               this.settings = s;
             }
           } catch (e) {}
+          try {
+            const r = await fetch('/api/status');
+            if (r.ok) this.status = await r.json();
+          } catch (e) {}
+        },
+
+        pacUrl(path) { return location.origin + path; },
+
+        async copyText(text) {
+          try { await navigator.clipboard.writeText(text); this.alert = 'Copied: ' + text; this.alertType = 'success'; }
+          catch (e) { this.alert = 'Copy failed — select and copy manually'; this.alertType = 'error'; }
+          setTimeout(() => { this.alert = ''; }, 3000);
         },
 
         async save() {
           const payload = { ...this.settings };
+          if (Array.isArray(payload.pac_direct_hosts))
+            payload.pac_direct_hosts = payload.pac_direct_hosts.map(h => (h || '').trim()).filter(Boolean);
           if (this.newPassword) payload.new_password = this.newPassword;
           try {
             const res = await fetch('/api/settings', {
