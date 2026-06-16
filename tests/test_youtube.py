@@ -7,6 +7,8 @@ import pytest
 from proxy.addons.youtube_filter import (
     _channel_listed, _is_blocked, _json_unescape, _norm_name,
     _CHANNEL_ID_RE, _AUTHOR_RE, _HANDLE_RE,
+    _is_channel_path, _is_home_path,
+    _strip_comments_from_next, _strip_sidebar_from_next, _browse_channel_identity,
 )
 from shared.models import YouTubeConfig
 
@@ -133,3 +135,158 @@ class TestPlayerRewrite:
         out = json.loads(flow.response.text)
         assert out["playabilityStatus"]["status"] == "OK"
         assert "streamingData" in out
+
+
+class TestPathClassifiers:
+    @pytest.mark.parametrize("path", [
+        "/@MrBeast", "/@Mr.Beast", "/channel/" + CID, "/c/SomeName", "/user/SomeName",
+        "/@MrBeast/videos",
+    ])
+    def test_channel_paths(self, path):
+        assert _is_channel_path(path)
+
+    @pytest.mark.parametrize("path", ["/watch", "/watch?v=x", "/results", "/", "/feed/subscriptions"])
+    def test_non_channel_paths(self, path):
+        assert not _is_channel_path(path)
+
+    def test_home_paths(self):
+        assert _is_home_path("/")
+        assert _is_home_path("/feed/subscriptions")
+        assert not _is_home_path("/watch")
+
+
+class TestNextTransforms:
+    def _watch_next(self):
+        return {
+            "contents": {"twoColumnWatchNextResults": {
+                "results": {"results": {"contents": [
+                    {"itemSectionRenderer": {"sectionIdentifier": "video-info"}},
+                    {"itemSectionRenderer": {"sectionIdentifier": "comment-item-section"}},
+                ]}},
+                "secondaryResults": {"secondaryResults": {"results": ["related1", "related2"]}},
+            }}
+        }
+
+    def test_strip_comments(self):
+        data = self._watch_next()
+        assert _strip_comments_from_next(data) is True
+        kept = data["contents"]["twoColumnWatchNextResults"]["results"]["results"]["contents"]
+        ids = [i["itemSectionRenderer"]["sectionIdentifier"] for i in kept]
+        assert "comment-item-section" not in ids
+        assert "video-info" in ids
+
+    def test_strip_comments_idempotent(self):
+        data = {"contents": {"twoColumnWatchNextResults": {"results": {"results": {"contents": []}}}}}
+        assert _strip_comments_from_next(data) is False
+
+    def test_strip_sidebar(self):
+        data = self._watch_next()
+        assert _strip_sidebar_from_next(data) is True
+        assert "secondaryResults" not in data["contents"]["twoColumnWatchNextResults"]
+
+    def test_strip_sidebar_absent(self):
+        data = {"contents": {"twoColumnWatchNextResults": {}}}
+        assert _strip_sidebar_from_next(data) is False
+
+
+class TestBrowseIdentity:
+    def test_channel_metadata_extracted(self):
+        data = {"metadata": {"channelMetadataRenderer": {
+            "title": "FDD",
+            "externalId": CID,
+            "vanityChannelUrl": "http://www.youtube.com/@FDD",
+        }}}
+        cid, title, handle = _browse_channel_identity(data)
+        assert cid == CID and title == "FDD" and handle == "@FDD"
+
+    def test_feed_has_no_identity(self):
+        cid, title, handle = _browse_channel_identity({"contents": {}})
+        assert cid is None and title is None and handle is None
+
+
+def _flow(path, body, ct="application/json"):
+    """A minimal mitmproxy-flow stand-in routed through YouTubeFilter.response."""
+    class Resp:
+        def __init__(self, text, ct):
+            self.text = text
+            self._ct = ct
+            self.headers = {"content-type": ct}
+            self.status_code = 200
+        @property
+        def content(self):
+            return self.text.encode() if isinstance(self.text, str) else self.text
+    class Req:
+        def __init__(self, path):
+            self.path = path
+            self.pretty_host = "www.youtube.com"
+            self.pretty_url = "https://www.youtube.com" + path
+    class Conn:
+        peername = ("127.0.0.1", 1234)
+    class Flow:
+        def __init__(self):
+            self.response = Resp(body, ct)
+            self.request = Req(path)
+            self.client_conn = Conn()
+            self.metadata = {}
+    return Flow()
+
+
+def _policy(**yt):
+    from shared.models import Policy
+    p = Policy(name="kids")
+    p.youtube.enabled = True
+    for k, v in yt.items():
+        setattr(p.youtube, k, v)
+    return p
+
+
+class TestResponseDispatch:
+    def _run(self, flow, policy):
+        from proxy.addons.youtube_filter import YouTubeFilter
+        flow.metadata["policy"] = policy
+        YouTubeFilter().response(flow)
+
+    def test_channel_page_blocked_by_handle(self):
+        flow = _flow("/@FDD", "<html>channel</html>", ct="text/html; charset=utf-8")
+        self._run(flow, _policy(mode="blacklist", channels=["@FDD"]))
+        assert b"Access Blocked" in flow.response.content
+
+    def test_channel_page_allowed_when_not_listed(self):
+        flow = _flow("/@SomethingElse", "<html>channel</html>", ct="text/html; charset=utf-8")
+        self._run(flow, _policy(mode="blacklist", channels=["@FDD"]))
+        assert flow.response.content == b"<html>channel</html>"
+
+    def test_home_blocked_in_whitelist(self):
+        flow = _flow("/", "<html>home</html>", ct="text/html; charset=utf-8")
+        self._run(flow, _policy(mode="whitelist", channels=["Khan Academy"]))
+        assert b"Access Blocked" in flow.response.content
+
+    def test_home_allowed_in_blacklist(self):
+        flow = _flow("/", "<html>home</html>", ct="text/html; charset=utf-8")
+        self._run(flow, _policy(mode="blacklist", channels=["@FDD"]))
+        assert flow.response.content == b"<html>home</html>"
+
+    def test_home_not_blocked_when_block_home_off(self):
+        flow = _flow("/", "<html>home</html>", ct="text/html; charset=utf-8")
+        self._run(flow, _policy(mode="whitelist", channels=["x"], block_home=False))
+        assert flow.response.content == b"<html>home</html>"
+
+    def test_browse_channel_page_blocked(self):
+        body = json.dumps({"responseContext": {}, "metadata": {"channelMetadataRenderer": {
+            "title": "FDD", "externalId": CID, "vanityChannelUrl": "http://www.youtube.com/@FDD"}}})
+        flow = _flow("/youtubei/v1/browse", body)
+        self._run(flow, _policy(mode="blacklist", channels=["FDD"]))
+        out = json.loads(flow.response.text)
+        assert "metadata" not in out  # contents stripped
+
+    def test_next_removes_comments_and_sidebar(self):
+        body = json.dumps({"contents": {"twoColumnWatchNextResults": {
+            "results": {"results": {"contents": [
+                {"itemSectionRenderer": {"sectionIdentifier": "comment-item-section"}}]}},
+            "secondaryResults": {"x": 1}}}})
+        flow = _flow("/youtubei/v1/next", body)
+        self._run(flow, _policy(remove_comments=True, remove_recommendations=True))
+        out = json.loads(flow.response.text)
+        twocol = out["contents"]["twoColumnWatchNextResults"]
+        assert "secondaryResults" not in twocol
+        assert twocol["results"]["results"]["contents"] == []

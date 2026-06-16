@@ -71,6 +71,12 @@ class YouTubeConfig(BaseModel):
     channels: list[str] = Field(default_factory=list)
     exclude: list[str] = Field(default_factory=list)
     include_only: list[str] = Field(default_factory=list)
+    # In whitelist mode, also block the YouTube home page / feeds (only listed
+    # channels' content should be reachable).
+    block_home: bool = True
+    # Clean up the watch page.
+    remove_comments: bool = False
+    remove_recommendations: bool = False  # related-videos sidebar / autoplay
 
 
 class MitmConfig(BaseModel):
