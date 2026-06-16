@@ -10,11 +10,16 @@ youtube.com is a single-page app, so several interception points are needed.
 A full document GET (`/watch`, `/@channel`, …) only happens on a direct load or
 reload; in-app navigation instead hits the InnerTube JSON APIs. We cover both:
 
-  * /youtubei/v1/player  — playback gate. Fires on every in-app video nav. We
-    rewrite playabilityStatus to ERROR and drop streamingData so a blocked
-    channel's video can't play. (This is the "plays, only blocks on reload" path.)
-  * /youtubei/v1/next    — watch metadata. Used to enforce the channel block as a
-    backup and to strip comments / the related-videos sidebar when configured.
+  * /youtubei/v1/get_watch — the combined watch call modern YouTube uses for
+    in-app navigation. Its body is a JSON array carrying both the player response
+    ([0].playerResponse) and the watch-next data ([1].watchNextResponse). This is
+    the "video plays, only blocks on reload" path: blocking /player alone misses
+    it because playback data now arrives here.
+  * /youtubei/v1/player  — playback gate for some flows. We rewrite
+    playabilityStatus to ERROR and drop streamingData so a blocked channel's
+    video can't play.
+  * /youtubei/v1/next    — watch metadata. Used to strip comments / the
+    related-videos sidebar when configured.
   * /youtubei/v1/browse  — channel pages and the home feed (in-app nav). Used to
     block a channel page and, in whitelist mode, the home feed.
   * /watch HTML          — direct load / reload of a video.
@@ -32,6 +37,7 @@ _YOUTUBE_HOSTS = {
     "youtubei.googleapis.com",
 }
 _PLAYER_PATH = "/youtubei/v1/player"
+_GET_WATCH_PATH = "/youtubei/v1/get_watch"
 _NEXT_PATH = "/youtubei/v1/next"
 _BROWSE_PATH = "/youtubei/v1/browse"
 
@@ -182,6 +188,8 @@ class YouTubeFilter:
 
         if path == _PLAYER_PATH:
             self._handle_player(flow, policy)
+        elif path == _GET_WATCH_PATH:
+            self._handle_get_watch(flow, policy)
         elif path == _NEXT_PATH:
             self._handle_next(flow, policy)
         elif path == _BROWSE_PATH:
@@ -197,38 +205,29 @@ class YouTubeFilter:
             elif _is_home_path(path):
                 self._handle_home_html(flow, policy)
 
-    # --- InnerTube player API (SPA video navigation) ---------------------------
-    def _handle_player(self, flow: http.HTTPFlow, policy) -> None:
-        ct = flow.response.headers.get("content-type", "")
-        if "json" not in ct:
-            return
-        try:
-            data = json.loads(flow.response.text)
-        except Exception:
-            return
-
-        vd = data.get("videoDetails", {}) or {}
-        micro = (data.get("microformat", {}) or {}).get("playerMicroformatRenderer", {}) or {}
+    # --- player-response blocking (shared by /player and /get_watch) -----------
+    def _block_player_response(self, pr: dict, policy) -> str | None:
+        """If this player response's channel is blocked, mutate it to be
+        unplayable in place and return the channel label; else return None."""
+        vd = pr.get("videoDetails", {}) or {}
+        micro = (pr.get("microformat", {}) or {}).get("playerMicroformatRenderer", {}) or {}
 
         channel_id = vd.get("channelId") or micro.get("externalChannelId")
         author = vd.get("author") or micro.get("ownerChannelName")
         handle = None
-        owner_url = micro.get("ownerProfileUrl", "") or ""
-        m = _OWNER_URL_HANDLE_RE.search(owner_url)
+        m = _OWNER_URL_HANDLE_RE.search(micro.get("ownerProfileUrl", "") or "")
         if m:
             handle = m.group(1)
 
         if not channel_id and not author:
-            return
+            return None
         if not _is_blocked(channel_id, author, handle, policy.youtube):
-            return
+            return None
 
         label = author or channel_id
         msg = policy.block_page.message or "This video is blocked by your network policy."
-        reason = f"YouTube channel '{label}' blocked by policy"
-
         # Make the video unplayable: YouTube's player honours playabilityStatus.
-        data["playabilityStatus"] = {
+        pr["playabilityStatus"] = {
             "status": "ERROR",
             "reason": msg,
             "errorScreen": {
@@ -239,12 +238,61 @@ class YouTubeFilter:
             },
         }
         # Drop stream URLs so playback cannot proceed even if status is ignored.
-        data.pop("streamingData", None)
+        pr.pop("streamingData", None)
+        return label
 
-        flow.response.text = json.dumps(data)
-        log_block(flow, reason, "youtube", policy)
+    # --- InnerTube player API ---------------------------------------------------
+    def _handle_player(self, flow: http.HTTPFlow, policy) -> None:
+        ct = flow.response.headers.get("content-type", "")
+        if "json" not in ct:
+            return
+        try:
+            data = json.loads(flow.response.text)
+        except Exception:
+            return
 
-    # --- InnerTube next API (comments / sidebar + channel-block backup) --------
+        label = self._block_player_response(data, policy)
+        if label:
+            flow.response.text = json.dumps(data)
+            log_block(flow, f"YouTube channel '{label}' blocked by policy", "youtube", policy)
+
+    # --- InnerTube get_watch API (SPA video navigation) ------------------------
+    def _handle_get_watch(self, flow: http.HTTPFlow, policy) -> None:
+        yt = policy.youtube
+        ct = flow.response.headers.get("content-type", "")
+        if "json" not in ct:
+            return
+        try:
+            data = json.loads(flow.response.text)
+        except Exception:
+            return
+
+        # Body is an array of sub-responses; normalise to a list to iterate.
+        elements = data if isinstance(data, list) else [data]
+        changed = False
+        label = None
+        for el in elements:
+            if not isinstance(el, dict):
+                continue
+            pr = el.get("playerResponse")
+            if isinstance(pr, dict):
+                lbl = self._block_player_response(pr, policy)
+                if lbl:
+                    changed = True
+                    label = lbl
+            wn = el.get("watchNextResponse")
+            if isinstance(wn, dict):
+                if yt.remove_comments:
+                    changed |= _strip_comments_from_next(wn)
+                if yt.remove_recommendations:
+                    changed |= _strip_sidebar_from_next(wn)
+
+        if changed:
+            flow.response.text = json.dumps(data)
+            if label:
+                log_block(flow, f"YouTube channel '{label}' blocked by policy", "youtube", policy)
+
+    # --- InnerTube next API (comments / sidebar) -------------------------------
     def _handle_next(self, flow: http.HTTPFlow, policy) -> None:
         yt = policy.youtube
         ct = flow.response.headers.get("content-type", "")

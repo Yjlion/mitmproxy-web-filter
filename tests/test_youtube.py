@@ -279,6 +279,46 @@ class TestResponseDispatch:
         out = json.loads(flow.response.text)
         assert "metadata" not in out  # contents stripped
 
+    def test_get_watch_blocks_video_and_keeps_array_shape(self):
+        # Mirrors the real /get_watch body: [ {playerResponse}, {watchNextResponse} ]
+        body = json.dumps([
+            {"playerResponse": {
+                "videoDetails": {"channelId": CID, "author": "FDD"},
+                "microformat": {"playerMicroformatRenderer": {"ownerProfileUrl": "http://www.youtube.com/@FDD"}},
+                "playabilityStatus": {"status": "OK"},
+                "streamingData": {"formats": ["url"]}},
+             "responseType": "player"},
+            {"watchNextResponse": {"contents": {"twoColumnWatchNextResults": {
+                "results": {"results": {"contents": [
+                    {"itemSectionRenderer": {"sectionIdentifier": "comment-item-section"}}]}},
+                "secondaryResults": {"x": 1}}}},
+             "responseType": "watchNext"},
+        ])
+        flow = _flow("/youtubei/v1/get_watch", body)
+        self._run(flow, _policy(mode="blacklist", channels=["FDD"],
+                                remove_comments=True, remove_recommendations=True))
+        out = json.loads(flow.response.text)
+        assert isinstance(out, list) and len(out) == 2
+        pr = out[0]["playerResponse"]
+        assert pr["playabilityStatus"]["status"] == "ERROR"
+        assert "streamingData" not in pr
+        twocol = out[1]["watchNextResponse"]["contents"]["twoColumnWatchNextResults"]
+        assert "secondaryResults" not in twocol
+        assert twocol["results"]["results"]["contents"] == []
+
+    def test_get_watch_allowed_video_untouched(self):
+        body = json.dumps([
+            {"playerResponse": {
+                "videoDetails": {"channelId": CID, "author": "Khan Academy"},
+                "playabilityStatus": {"status": "OK"},
+                "streamingData": {"formats": ["url"]}}},
+        ])
+        flow = _flow("/youtubei/v1/get_watch", body)
+        self._run(flow, _policy(mode="blacklist", channels=["FDD"]))
+        out = json.loads(flow.response.text)
+        assert out[0]["playerResponse"]["playabilityStatus"]["status"] == "OK"
+        assert "streamingData" in out[0]["playerResponse"]
+
     def test_next_removes_comments_and_sidebar(self):
         body = json.dumps({"contents": {"twoColumnWatchNextResults": {
             "results": {"results": {"contents": [
