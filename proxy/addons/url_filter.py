@@ -31,7 +31,7 @@ class UrlFilter:
         host = flow.request.pretty_host
         url = flow.request.pretty_url
 
-        # Custom allow list overrides everything (including category blocks).
+        # Custom allow/block lists take precedence over categories.
         for pattern in cfg.allow:
             if _url_matches(host, url, pattern):
                 flow.metadata["url_allowed"] = True
@@ -44,9 +44,18 @@ class UrlFilter:
                 )
                 return
 
-        # Shared category blocklists.
+        # Shared categories, applied per mode.
         if cfg.categories:
             cat = category_store.match_any(host, cfg.categories)
+            if cfg.mode == "whitelist":
+                # Only listed categories are allowed; block everything else.
+                if not cat:
+                    flow.response = make_block_response(
+                        flow, "Site not in an allowed category (whitelist)",
+                        "url_filter", policy,
+                    )
+                return
+            # blacklist: block domains that fall in a listed category
             if cat:
                 flow.response = make_block_response(
                     flow, f"Site category '{cat}' blocked by policy", "url_filter", policy

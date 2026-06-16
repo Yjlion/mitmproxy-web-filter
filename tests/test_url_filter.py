@@ -80,3 +80,23 @@ class TestCategoryBlocking:
         flow.metadata["policy"] = self._policy(categories=["ads"])
         UrlFilter().request(flow)
         assert flow.response is None
+
+    def test_whitelist_allows_category_member(self):
+        flow = _flow("track.ad.net", "https://track.ad.net/")
+        flow.metadata["policy"] = self._policy(mode="whitelist", categories=["ads"])
+        UrlFilter().request(flow)
+        assert flow.response is None  # in an allowed category → permitted
+
+    def test_whitelist_blocks_non_member(self):
+        flow = _flow("other.com", "https://other.com/")
+        flow.metadata["policy"] = self._policy(mode="whitelist", categories=["ads"])
+        UrlFilter().request(flow)
+        assert flow.response is not None
+        assert b"Access Blocked" in flow.response.content
+
+    def test_whitelist_allow_list_overrides(self):
+        flow = _flow("other.com", "https://other.com/")
+        flow.metadata["policy"] = self._policy(mode="whitelist", categories=["ads"], allow=["other.com"])
+        UrlFilter().request(flow)
+        assert flow.response is None
+        assert flow.metadata.get("url_allowed") is True

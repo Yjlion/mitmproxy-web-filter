@@ -82,15 +82,17 @@ class YouTubeConfig(BaseModel):
 class MitmConfig(BaseModel):
     mode: Literal["exclude", "include"] = "exclude"
     sites: list[str] = Field(default_factory=list)
-    # Shared site categories whose domains are treated like `sites`.
-    categories: list[str] = Field(default_factory=list)
 
 
 class UrlFilterConfig(BaseModel):
     enabled: bool = False
     allow: list[str] = Field(default_factory=list)
     block: list[str] = Field(default_factory=list)
-    # Shared site categories to block (custom allow list overrides these).
+    # Shared site categories. The custom allow/block lists take precedence; how
+    # the categories themselves are applied depends on `mode`:
+    #   blacklist — domains in the selected categories are blocked
+    #   whitelist — only domains in the selected categories are allowed
+    mode: Literal["blacklist", "whitelist"] = "blacklist"
     categories: list[str] = Field(default_factory=list)
 
 

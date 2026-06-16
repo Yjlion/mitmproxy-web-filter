@@ -121,30 +121,11 @@ class PolicyRouter:
             pass  # watchfiles not installed; hot-reload disabled
 
     def _sync_ignore_hosts(self) -> None:
-        from shared.categories import store as category_store
-
-        # Cap how many domains we fold into the global ignore_hosts regex so a
-        # large category (e.g. porn) accidentally added to MITM-exclude can't
-        # produce a pathological pattern. Banking/finance-style lists are small.
-        cap = 50000
         domains: set[str] = set()
-        truncated = False
         for policy in _policies:
-            if policy.mitm.mode != "exclude":
-                continue
-            for site in policy.mitm.sites:
-                domains.add(site.lstrip("*.").lower())
-            for cat in policy.mitm.categories:
-                for d in category_store.domains(cat):
-                    if len(domains) >= cap:
-                        truncated = True
-                        break
-                    domains.add(d)
-
-        if truncated:
-            logger.warning(
-                "[policy_router] MITM-exclude domain set hit cap (%d); some "
-                "category domains will still be intercepted.", cap)
+            if policy.mitm.mode == "exclude":
+                for site in policy.mitm.sites:
+                    domains.add(site.lstrip("*.").lower())
 
         try:
             if not domains:
