@@ -6,7 +6,8 @@ management UI. Each policy is a JSON file and is matched to clients by source IP
 
 ## Filtering components (per policy, individually toggleable)
 
-- **URL filter** — allow / block lists (exact, `*.wildcard`, URL globs); allow wins.
+- **URL filter** — allow / block lists (exact, `*.wildcard`, URL globs) plus shared
+  **site categories** (blocked → block page); allow list wins.
 - **DOH** — checks each domain against a DNS-over-HTTPS resolver (NextDNS, Cloudflare,
   CleanBrowsing, AdGuard, …). Detects blocks via NXDOMAIN, sinkhole IPs, RFC 8914
   Extended DNS Errors, and provider block-page IPs.
@@ -17,7 +18,8 @@ management UI. Each policy is a JSON file and is matched to clients by source IP
 - **Adult text classifier** — blocks pages with adult text.
 - **Image classifier** — NSFW detection (NudeNet); blur the whole image, replace with a
   checkerboard placeholder, or blank it.
-- **MITM control** — include/exclude sites from TLS interception.
+- **MITM control** — include/exclude sites (and shared categories) from TLS
+  interception (e.g. bypass banking sites).
 - **Custom block page** per policy.
 
 The management UI (dashboard, policy editor, settings) runs separately from the proxy
@@ -68,6 +70,17 @@ Run the tests:
   logs dir, auth). Not committed (holds the password hash); copy `settings.example.json`
   to create it, or just save once from the Settings page.
 - `policies/*.json` — one file per policy, hot-reloaded by the proxy on change.
+- `categories/` — shared site-category blocklists (one folder per category, each
+  with a `domains` file). Populate / refresh them from the IPFire squidguard list:
+
+  ```bash
+  scripts/update_categories.sh           # download + (re)build all categories
+  scripts/update_categories.sh --keep porn,gambling,ads   # subset only
+  ```
+
+  Run it on a schedule (cron / Task Scheduler) to keep lists current. Policies
+  reference categories by name under URL filter (block) and MITM (bypass); the
+  policy's own custom site lists override the shared categories.
 
 See [CLAUDE.md](CLAUDE.md) for architecture details.
 

@@ -8,6 +8,7 @@ This addon handles per-flow decisions for the "include-only" MITM mode.
 from __future__ import annotations
 from mitmproxy import http
 from proxy.block_page import make_block_response
+from shared.categories import store as category_store
 
 
 def _host_in_list(host: str, sites: list[str]) -> bool:
@@ -30,11 +31,13 @@ class MitmControl:
             return
 
         cfg = policy.mitm
-        if cfg.mode != "include" or not cfg.sites:
+        if cfg.mode != "include" or not (cfg.sites or cfg.categories):
             return
 
         host = flow.request.pretty_host
-        if not _host_in_list(host, cfg.sites):
+        listed = _host_in_list(host, cfg.sites) or bool(
+            category_store.match_any(host, cfg.categories))
+        if not listed:
             # Pass through — cannot do TLS bypass here (already connected),
             # but mark so response hooks skip filtering.
             flow.metadata["mitm_passthrough"] = True

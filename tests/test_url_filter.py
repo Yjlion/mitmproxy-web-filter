@@ -3,7 +3,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from proxy.addons.url_filter import _host_matches, _url_matches
+import proxy.addons.url_filter as url_filter
+from proxy.addons.url_filter import _host_matches, _url_matches, UrlFilter
+from shared.categories import CategoryStore
+from shared.models import Policy
 
 
 class TestHostMatches:
@@ -33,3 +36,47 @@ class TestUrlMatches:
 
     def test_glob_url(self):
         assert _url_matches("example.com", "https://example.com/ads/banner.jpg", "https://example.com/ads/*")
+
+
+def _flow(host, url):
+    class Req:
+        def __init__(s): s.pretty_host = host; s.pretty_url = url
+    class Conn: peername = ("127.0.0.1", 1)
+    class Flow:
+        def __init__(s): s.request = Req(); s.client_conn = Conn(); s.metadata = {}; s.response = None
+    return Flow()
+
+
+class TestCategoryBlocking:
+    @pytest.fixture(autouse=True)
+    def _store(self, tmp_path, monkeypatch):
+        d = tmp_path / "ads"; d.mkdir()
+        (d / "domains").write_text("ad.net\n")
+        monkeypatch.setattr(url_filter, "category_store", CategoryStore(base=tmp_path))
+
+    def _policy(self, **uf):
+        p = Policy(name="p")
+        p.url_filter.enabled = True
+        for k, v in uf.items():
+            setattr(p.url_filter, k, v)
+        return p
+
+    def test_category_blocks(self):
+        flow = _flow("track.ad.net", "https://track.ad.net/x")
+        flow.metadata["policy"] = self._policy(categories=["ads"])
+        UrlFilter().request(flow)
+        assert flow.response is not None
+        assert b"Access Blocked" in flow.response.content
+
+    def test_allow_overrides_category(self):
+        flow = _flow("track.ad.net", "https://track.ad.net/x")
+        flow.metadata["policy"] = self._policy(categories=["ads"], allow=["track.ad.net"])
+        UrlFilter().request(flow)
+        assert flow.response is None
+        assert flow.metadata.get("url_allowed") is True
+
+    def test_unlisted_host_passes(self):
+        flow = _flow("good.com", "https://good.com/")
+        flow.metadata["policy"] = self._policy(categories=["ads"])
+        UrlFilter().request(flow)
+        assert flow.response is None

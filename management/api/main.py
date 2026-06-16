@@ -136,6 +136,23 @@ def _tail_jsonl(path: Path, limit: int) -> list[dict]:
     return out
 
 
+@app.get("/api/categories")
+def get_categories():
+    """Shared site categories available to policies (from categories/index.json)."""
+    from shared.categories import list_categories, index_meta
+    return {"categories": list_categories(), **index_meta()}
+
+
+@app.get("/api/logs")
+def get_logs(kind: str = "blocks", limit: int = 500):
+    """Tail of a log file. kind = 'blocks' | 'requests'."""
+    settings = _load_settings()
+    root = Path(__file__).parent.parent.parent
+    limit = max(1, min(limit, 5000))
+    rel = settings.request_log_path if kind == "requests" else settings.blocks_log_path
+    return {"kind": kind, "entries": _tail_jsonl(root / rel.lstrip("./"), limit)}
+
+
 @app.get("/api/ca-cert")
 def download_ca_cert():
     from shared.models import GlobalSettings

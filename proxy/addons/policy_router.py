@@ -121,14 +121,39 @@ class PolicyRouter:
             pass  # watchfiles not installed; hot-reload disabled
 
     def _sync_ignore_hosts(self) -> None:
-        excluded: set[str] = set()
+        from shared.categories import store as category_store
+
+        # Cap how many domains we fold into the global ignore_hosts regex so a
+        # large category (e.g. porn) accidentally added to MITM-exclude can't
+        # produce a pathological pattern. Banking/finance-style lists are small.
+        cap = 50000
+        domains: set[str] = set()
+        truncated = False
         for policy in _policies:
-            if policy.mitm.mode == "exclude":
-                for site in policy.mitm.sites:
-                    excluded.add(site.lstrip("*.").replace(".", r"\."))
-        if excluded:
-            pattern = "(" + "|".join(excluded) + ")"
-            try:
-                ctx.options.ignore_hosts = [pattern]
-            except Exception:
-                pass
+            if policy.mitm.mode != "exclude":
+                continue
+            for site in policy.mitm.sites:
+                domains.add(site.lstrip("*.").lower())
+            for cat in policy.mitm.categories:
+                for d in category_store.domains(cat):
+                    if len(domains) >= cap:
+                        truncated = True
+                        break
+                    domains.add(d)
+
+        if truncated:
+            logger.warning(
+                "[policy_router] MITM-exclude domain set hit cap (%d); some "
+                "category domains will still be intercepted.", cap)
+
+        try:
+            if not domains:
+                ctx.options.ignore_hosts = []
+                return
+            # Anchor each domain so "example.com" matches host/subdomains but not
+            # "notexample.com": (?:^|\.)example\.com(?::\d+)?$ over all domains.
+            alts = "|".join(sorted(d.replace(".", r"\.") for d in domains))
+            pattern = r"(?:^|\.)(?:" + alts + r")(?::\d+)?$"
+            ctx.options.ignore_hosts = [pattern]
+        except Exception:
+            pass
