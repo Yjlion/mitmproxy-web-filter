@@ -136,6 +136,25 @@ def _tail_jsonl(path: Path, limit: int) -> list[dict]:
     return out
 
 
+def _read_all_jsonl(path: Path) -> list[dict]:
+    """Return all valid JSON records from a .jsonl file (oldest first)."""
+    if not path.exists():
+        return []
+    try:
+        lines = path.read_text().splitlines()
+    except OSError:
+        return []
+    out = []
+    for line in lines:
+        line = line.strip()
+        if line:
+            try:
+                out.append(json.loads(line))
+            except Exception:
+                pass
+    return out
+
+
 @app.get("/api/categories")
 def get_categories():
     """Shared site categories available to policies (from categories/index.json)."""
@@ -151,6 +170,57 @@ def get_logs(kind: str = "blocks", limit: int = 500):
     limit = max(1, min(limit, 5000))
     rel = settings.request_log_path if kind == "requests" else settings.blocks_log_path
     return {"kind": kind, "entries": _tail_jsonl(root / rel.lstrip("./"), limit)}
+
+
+@app.get("/api/analytics")
+def get_analytics(hours: int = 24):
+    """Aggregate analytics from request and block logs over the last N hours."""
+    import time
+    from collections import Counter
+
+    settings = _load_settings()
+    root = Path(__file__).parent.parent.parent
+    hours = max(1, min(hours, 720))
+    cutoff = time.time() - hours * 3600
+
+    requests = _read_all_jsonl(root / settings.request_log_path.lstrip("./"))
+    blocks = _read_all_jsonl(root / settings.blocks_log_path.lstrip("./"))
+
+    requests = [r for r in requests if r.get("ts", 0) >= cutoff]
+    blocks = [b for b in blocks if b.get("ts", 0) >= cutoff]
+
+    top_domains = Counter(b.get("domain", "") for b in blocks if b.get("domain"))
+    blocks_by_component = Counter(b.get("component", "unknown") for b in blocks)
+    request_actions = Counter(r.get("action", "unknown") for r in requests)
+
+    per_device: dict[str, dict] = {}
+    for r in requests:
+        ip = r.get("client_ip") or "unknown"
+        s = per_device.setdefault(ip, {"ip": ip, "total": 0, "blocked": 0, "policy": r.get("policy", "")})
+        s["total"] += 1
+        if r.get("action") == "blocked":
+            s["blocked"] += 1
+
+    # Hourly block buckets (label = hour boundary as unix timestamp)
+    import math
+    bucket_size = 3600
+    blocks_over_time: dict[int, int] = {}
+    for b in blocks:
+        ts = b.get("ts", 0)
+        bucket = int(math.floor(ts / bucket_size)) * bucket_size
+        blocks_over_time[bucket] = blocks_over_time.get(bucket, 0) + 1
+    blocks_timeline = [{"ts": k, "count": v} for k, v in sorted(blocks_over_time.items())]
+
+    return {
+        "window_hours": hours,
+        "total_requests": len(requests),
+        "total_blocks": len(blocks),
+        "request_actions": dict(request_actions),
+        "top_blocked_domains": [{"domain": d, "count": c} for d, c in top_domains.most_common(15)],
+        "blocks_by_component": [{"component": k, "count": v} for k, v in blocks_by_component.most_common()],
+        "per_device": sorted(per_device.values(), key=lambda x: -x["total"]),
+        "blocks_timeline": blocks_timeline,
+    }
 
 
 @app.get("/api/ca-cert")
