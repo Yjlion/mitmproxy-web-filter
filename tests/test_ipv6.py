@@ -65,6 +65,51 @@ class TestIPv4MappedDualStack:
         assert get_policy("::ffff:10.0.0.5") is None
 
 
+class TestMatchPrecedence:
+    """Matching prefers specificity: exact IP > CIDR block > catch-all."""
+
+    def test_exact_ip_beats_block(self):
+        block = Policy(name="lan", source_ips=["192.168.1.0/24"])
+        exact = Policy(name="kid", source_ips=["192.168.1.50"])
+        # Block is listed first, but the exact match must still win.
+        _set([block, exact])
+        assert get_policy("192.168.1.50") is exact
+        assert get_policy("192.168.1.51") is block
+
+    def test_narrowest_block_wins(self):
+        wide = Policy(name="wide", source_ips=["10.0.0.0/8"])
+        narrow = Policy(name="narrow", source_ips=["10.1.2.0/24"])
+        # Wide is listed first, but the narrower block must win.
+        _set([wide, narrow])
+        assert get_policy("10.1.2.5") is narrow
+        assert get_policy("10.9.9.9") is wide
+
+    def test_catch_all_is_last_resort(self):
+        block = Policy(name="lan", source_ips=["192.168.1.0/24"])
+        default = Policy(name="default", source_ips=[])
+        _set([block, default])
+        assert get_policy("192.168.1.5") is block
+        assert get_policy("8.8.8.8") is default
+
+    def test_exact_beats_block_across_addrs_dual_stack(self):
+        block = Policy(name="lan", source_ips=["192.168.1.0/24"])
+        exact = Policy(name="host", source_ips=["192.168.1.50"])
+        _set([block, exact])
+        # IPv4-mapped client should still prefer the exact match.
+        assert get_policy("::ffff:192.168.1.50") is exact
+
+
+class TestLoadPolicies:
+    def test_bom_prefixed_file_loads(self, tmp_path):
+        # A UTF-8 BOM (e.g. from PowerShell Set-Content -Encoding utf8) must not
+        # silently drop the policy.
+        (tmp_path / "kid.json").write_text(
+            '{"name":"kid","source_ips":["10.0.0.5"]}', encoding="utf-8-sig"
+        )
+        loaded = pr.load_policies(tmp_path)
+        assert [p.name for p in loaded] == ["kid"]
+
+
 class TestSettingsListen:
     def test_default(self):
         assert GlobalSettings().proxy_listen == ["0.0.0.0:8080"]

@@ -52,6 +52,18 @@ class TestProxyModesAndPort:
         assert s.proxy_listen == ["0.0.0.0:8080"]
 
 
+class TestBomTolerantSettings:
+    def test_load_settings_with_bom(self, tmp_path, monkeypatch):
+        # A settings.json saved with a UTF-8 BOM (e.g. PowerShell Set-Content
+        # -Encoding utf8) must still load instead of silently reverting to
+        # defaults.
+        import management.api.routes.settings as settings_route
+        cfg = tmp_path / "settings.json"
+        cfg.write_text('{"mgmt_port": 9123}', encoding="utf-8-sig")
+        monkeypatch.setattr(settings_route, "_SETTINGS_PATH", cfg)
+        assert settings_route._load().mgmt_port == 9123
+
+
 class TestLogPaths:
     def test_derived_from_logs_dir(self):
         s = GlobalSettings(logs_dir="/var/log/wf")

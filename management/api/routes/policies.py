@@ -17,7 +17,7 @@ def _policies_dir() -> Path:
     cfg_path = _PROJECT_ROOT / "config" / "settings.json"
     settings = GlobalSettings()
     if cfg_path.exists():
-        settings = GlobalSettings.model_validate_json(cfg_path.read_text())
+        settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
     d = _PROJECT_ROOT / settings.policies_dir.lstrip("./")
     d.mkdir(parents=True, exist_ok=True)
     return d
@@ -36,7 +36,7 @@ def list_policies() -> list[Policy]:
     policies = []
     for f in sorted(_policies_dir().glob("*.json")):
         try:
-            policies.append(Policy.model_validate_json(f.read_text()))
+            policies.append(Policy.model_validate_json(f.read_text(encoding="utf-8-sig")))
         except Exception:
             pass
     return policies
@@ -56,7 +56,7 @@ def get_policy(name: str) -> Policy:
     path = _policy_path(name)
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Policy '{name}' not found")
-    return Policy.model_validate_json(path.read_text())
+    return Policy.model_validate_json(path.read_text(encoding="utf-8-sig"))
 
 
 @router.put("/{name}")

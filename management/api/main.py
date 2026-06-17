@@ -30,7 +30,7 @@ app.add_middleware(
 
 def _load_settings() -> GlobalSettings:
     if _SETTINGS_PATH.exists():
-        return GlobalSettings.model_validate_json(_SETTINGS_PATH.read_text())
+        return GlobalSettings.model_validate_json(_SETTINGS_PATH.read_text(encoding="utf-8-sig"))
     return GlobalSettings()
 
 
@@ -101,7 +101,7 @@ def get_status():
     cfg_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
     settings = GlobalSettings()
     if cfg_path.exists():
-        settings = GlobalSettings.model_validate_json(cfg_path.read_text())
+        settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
 
     port = settings.primary_proxy_port
     proxy_running = _port_open("127.0.0.1", port) or _port_open("::1", port)
@@ -159,7 +159,7 @@ def download_ca_cert():
     cfg_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
     settings = GlobalSettings()
     if cfg_path.exists():
-        settings = GlobalSettings.model_validate_json(cfg_path.read_text())
+        settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
 
     root = Path(__file__).parent.parent.parent
     cert_dir = root / settings.cert_dir.lstrip("./")
