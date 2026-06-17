@@ -27,6 +27,13 @@ class UrlFilter:
         if not policy or not policy.url_filter.enabled:
             return
 
+        # Honor MITM passthrough (include-mode non-listed sites, User-Agent
+        # rules): these flows skip all filtering, URL rules included. Without
+        # this, matching clients would still be blocked here while every later
+        # addon skips them.
+        if flow.metadata.get("mitm_passthrough"):
+            return
+
         cfg = policy.url_filter
         host = flow.request.pretty_host
         url = flow.request.pretty_url

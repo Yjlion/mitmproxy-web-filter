@@ -380,3 +380,19 @@ class TestMitmControlIsolated:
         flow.metadata["policy"] = p
         MitmControl().request(flow)
         assert "mitm_passthrough" not in flow.metadata
+
+    def test_ua_passthrough_skips_url_filter(self):
+        """UA passthrough must short-circuit url_filter, which runs right after
+        mitm_control — otherwise a bypassed client is still blocked by URL rules."""
+        from proxy.addons.mitm_control import MitmControl
+        from proxy.addons.url_filter import UrlFilter
+        p = Policy(name="m")
+        p.mitm.ua_mode = "exclude"
+        p.mitm.user_agents = ["Spotify"]
+        p.url_filter.enabled = True
+        p.url_filter.block = ["x.example.com"]
+        flow = self._ua_flow("Spotify/8.9")
+        flow.metadata["policy"] = p
+        MitmControl().request(flow)
+        UrlFilter().request(flow)
+        assert flow.response is None  # not blocked
