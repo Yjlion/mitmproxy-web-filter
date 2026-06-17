@@ -319,3 +319,64 @@ class TestMitmControlIsolated:
         flow.metadata["policy"] = p
         MitmControl().request(flow)
         assert "mitm_passthrough" not in flow.metadata
+
+    def _ua_flow(self, ua: str) -> "FakeFlow":
+        flow = FakeFlow("http://x.example.com/")
+        flow.request.headers["user-agent"] = ua
+        return flow
+
+    def test_ua_exclude_matching_passes_through(self):
+        from proxy.addons.mitm_control import MitmControl
+        p = Policy(name="m")
+        p.mitm.ua_mode = "exclude"
+        p.mitm.user_agents = ["Spotify", "Roku"]
+        flow = self._ua_flow("Spotify/8.9 (Windows)")
+        flow.metadata["policy"] = p
+        MitmControl().request(flow)
+        assert flow.metadata.get("mitm_passthrough") is True
+
+    def test_ua_exclude_nonmatching_filtered(self):
+        from proxy.addons.mitm_control import MitmControl
+        p = Policy(name="m")
+        p.mitm.ua_mode = "exclude"
+        p.mitm.user_agents = ["Spotify"]
+        flow = self._ua_flow("Mozilla/5.0 (Windows NT 10.0) Chrome/120")
+        flow.metadata["policy"] = p
+        MitmControl().request(flow)
+        assert "mitm_passthrough" not in flow.metadata
+
+    def test_ua_include_only_matching_filtered(self):
+        from proxy.addons.mitm_control import MitmControl
+        p = Policy(name="m")
+        p.mitm.ua_mode = "include"
+        p.mitm.user_agents = ["Chrome"]
+        # Listed UA → intercepted/filtered (no passthrough).
+        listed = self._ua_flow("Mozilla/5.0 Chrome/120")
+        listed.metadata["policy"] = p
+        MitmControl().request(listed)
+        assert "mitm_passthrough" not in listed.metadata
+        # Unlisted UA → passes through.
+        other = self._ua_flow("curl/8.4.0")
+        other.metadata["policy"] = p
+        MitmControl().request(other)
+        assert other.metadata.get("mitm_passthrough") is True
+
+    def test_ua_match_is_case_insensitive(self):
+        from proxy.addons.mitm_control import MitmControl
+        p = Policy(name="m")
+        p.mitm.ua_mode = "exclude"
+        p.mitm.user_agents = ["spotify"]
+        flow = self._ua_flow("SPOTIFY/8.9")
+        flow.metadata["policy"] = p
+        MitmControl().request(flow)
+        assert flow.metadata.get("mitm_passthrough") is True
+
+    def test_ua_off_is_inert(self):
+        from proxy.addons.mitm_control import MitmControl
+        p = Policy(name="m")
+        p.mitm.ua_mode = "off"
+        p.mitm.user_agents = ["Spotify"]
+        flow = self._ua_flow("Spotify/8.9")
+        flow.metadata["policy"] = p
+        MitmControl().request(flow)
+        assert "mitm_passthrough" not in flow.metadata

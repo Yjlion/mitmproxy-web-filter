@@ -18,23 +18,43 @@ def _host_in_list(host: str, sites: list[str]) -> bool:
     return False
 
 
+def _ua_matches(ua: str, tokens: list[str]) -> bool:
+    """True if the User-Agent contains any token (case-insensitive substring)."""
+    ua = ua.lower()
+    return any(t.strip().lower() in ua for t in tokens if t.strip())
+
+
 class MitmControl:
     def request(self, flow: http.HTTPFlow) -> None:
         """
+        Mark flows that should bypass filtering.
+
         For "include" mode: if the policy only wants to MITM specific sites,
         requests to non-listed sites that somehow made it through (HTTP traffic)
         are passed without modification.
+
+        For User-Agent rules: skip filtering for matching (exclude) or
+        non-matching (include) clients. Like the site include mode, this only
+        marks passthrough — it cannot un-intercept an already-decrypted
+        connection (the User-Agent isn't visible until after TLS interception).
         """
         policy = flow.metadata.get("policy")
         if not policy:
             return
 
         cfg = policy.mitm
-        if cfg.mode != "include" or not cfg.sites:
-            return
 
-        host = flow.request.pretty_host
-        if not _host_in_list(host, cfg.sites):
-            # Pass through — cannot do TLS bypass here (already connected),
-            # but mark so response hooks skip filtering.
-            flow.metadata["mitm_passthrough"] = True
+        # Site-based include mode: pass through non-listed sites.
+        if cfg.mode == "include" and cfg.sites:
+            host = flow.request.pretty_host
+            if not _host_in_list(host, cfg.sites):
+                flow.metadata["mitm_passthrough"] = True
+
+        # User-Agent based passthrough.
+        if cfg.ua_mode != "off" and cfg.user_agents:
+            ua = flow.request.headers.get("user-agent", "")
+            matched = _ua_matches(ua, cfg.user_agents)
+            if (cfg.ua_mode == "exclude" and matched) or (
+                cfg.ua_mode == "include" and not matched
+            ):
+                flow.metadata["mitm_passthrough"] = True

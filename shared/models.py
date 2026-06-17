@@ -82,6 +82,18 @@ class YouTubeConfig(BaseModel):
 class MitmConfig(BaseModel):
     mode: Literal["exclude", "include"] = "exclude"
     sites: list[str] = Field(default_factory=list)
+    # User-Agent based passthrough. TLS bypass (ignore_hosts) happens before any
+    # HTTP header is visible, so this cannot skip interception — by the time the
+    # User-Agent is readable the connection is already decrypted. Instead, a
+    # matching request is marked passthrough so the filtering addons skip it.
+    #   off     — ignore User-Agent
+    #   exclude — requests whose User-Agent contains any listed token pass
+    #             through unfiltered (e.g. let a specific app/device through)
+    #   include — only requests whose User-Agent contains a listed token are
+    #             filtered; everything else passes through
+    # Tokens are matched case-insensitively as substrings.
+    ua_mode: Literal["off", "exclude", "include"] = "off"
+    user_agents: list[str] = Field(default_factory=list)
 
 
 class UrlFilterConfig(BaseModel):
