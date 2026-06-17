@@ -372,7 +372,7 @@
               <div class="w-9 h-5"></div><!-- spacer for toggle alignment -->
               <div>
                 <div class="text-sm font-semibold text-gray-900">MITM Control</div>
-                <div class="text-xs text-gray-500">Control which sites are TLS-intercepted</div>
+                <div class="text-xs text-gray-500">Control which sites and clients are filtered</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.mitm ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -393,6 +393,33 @@
               <textarea x-model="mitmSitesText" @input="policy.mitm.sites = mitmSitesText.split('\n').map(s=>s.trim()).filter(Boolean)"
                         rows="4" placeholder="mybank.com&#10;health-portal.com"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+            </div>
+
+            <div class="border-t border-gray-100 pt-3 space-y-3">
+              <div>
+                <div class="text-sm font-medium text-gray-800">User-Agent rules</div>
+                <div class="text-xs text-gray-500">Skip filtering for matching clients (e.g. native apps, devices). Matched as case-insensitive substrings. Cannot bypass TLS interception &mdash; only skips content filtering.</div>
+              </div>
+              <div class="flex gap-4 flex-wrap">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" x-model="policy.mitm.ua_mode" value="off" class="text-blue-600" />
+                  <span class="text-sm text-gray-700">Off</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" x-model="policy.mitm.ua_mode" value="exclude" class="text-blue-600" />
+                  <span class="text-sm text-gray-700">Exclude (don't filter listed user-agents)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" x-model="policy.mitm.ua_mode" value="include" class="text-blue-600" />
+                  <span class="text-sm text-gray-700">Include (only filter listed user-agents)</span>
+                </label>
+              </div>
+              <div x-show="policy.mitm.ua_mode !== 'off'">
+                <label class="text-xs font-medium text-gray-700 block mb-1">User-Agents <span class="text-gray-400">(one per line)</span></label>
+                <textarea x-model="mitmUserAgentsText" @input="policy.mitm.user_agents = mitmUserAgentsText.split('\n').map(s=>s.trim()).filter(Boolean)"
+                          rows="3" placeholder="Spotify&#10;Roku&#10;CFNetwork"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+              </div>
             </div>
           </div>
         </div>
@@ -474,6 +501,7 @@
         textExcludeText: '',
         imgExcludeText: '',
         mitmSitesText: '',
+        mitmUserAgentsText: '',
 
         addIp() {
           const v = this.ipInput.trim().replace(/,$/, '').trim();
@@ -503,6 +531,8 @@
                 // Backfill fields that older policy files may lack.
                 this.policy.url_filter.categories = this.policy.url_filter.categories || [];
                 this.policy.url_filter.mode = this.policy.url_filter.mode || 'blacklist';
+                this.policy.mitm.ua_mode = this.policy.mitm.ua_mode || 'off';
+                this.policy.mitm.user_agents = this.policy.mitm.user_agents || [];
                 this._syncTextAreas();
               }
             } catch (e) { this.showAlert('Failed to load policy', 'error'); }
@@ -519,6 +549,7 @@
           this.textExcludeText = (this.policy.text_classifier.exclude || []).join(', ');
           this.imgExcludeText = (this.policy.image_classifier.exclude || []).join(', ');
           this.mitmSitesText = (this.policy.mitm.sites || []).join('\n');
+          this.mitmUserAgentsText = (this.policy.mitm.user_agents || []).join('\n');
         },
 
         async save() {
@@ -576,7 +607,7 @@
         youtube: { enabled: false, mode: 'blacklist', channels: [], exclude: [], include_only: [], block_home: true, remove_comments: false, remove_recommendations: false },
         text_classifier: { enabled: false, threshold: 0.8, exclude: [], include_only: [] },
         image_classifier: { enabled: false, action: 'blur', threshold: 0.4, exclude: [], include_only: [] },
-        mitm: { mode: 'exclude', sites: [] },
+        mitm: { mode: 'exclude', sites: [], ua_mode: 'off', user_agents: [] },
         block_page: { template: 'default', message: '' },
       };
     }

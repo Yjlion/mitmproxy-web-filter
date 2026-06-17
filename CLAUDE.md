@@ -50,6 +50,7 @@ Two processes share the `policies/` directory:
 - **Addon execution order**: `policy_router` → `mitm_control` → `url_filter` → `doh_filter` → `safesearch` → `youtube_filter` → then response hooks in reverse: `text_classifier` → `image_classifier`.
 - **Allow list short-circuits everything**: `url_filter.allow` match sets `flow.metadata["url_allowed"] = True`, which all other addons check and skip.
 - **MITM bypass**: done via `ctx.options.ignore_hosts` (global regex), aggregated from all policies' `mitm.mode == "exclude"` lists. Per-IP TLS bypass is architecturally limited.
+- **MITM passthrough (filtering skip)**: `mitm_control` marks `flow.metadata["mitm_passthrough"]` for include-mode non-listed sites and for User-Agent rules (`mitm.ua_mode` exclude/include over `mitm.user_agents`, case-insensitive substring match). This can't un-intercept TLS — the User-Agent isn't visible until after interception — it only makes filtering addons skip the flow (same gate as `url_allowed`).
 - **ML dependencies are optional**: `text_classifier` works without a model (keyword regex only); `image_classifier` gracefully skips if `nudenet` fails to import. ML model for text is at `models/text_classifier.joblib`.
 
 ## Component Quick Reference
@@ -57,7 +58,7 @@ Two processes share the `policies/` directory:
 | File | Hook | Purpose |
 |---|---|---|
 | `policy_router.py` | `request` | Attach policy to flow |
-| `mitm_control.py` | `request` | Mark passthrough for include-mode |
+| `mitm_control.py` | `request` | Mark passthrough for include-mode sites + User-Agent rules |
 | `url_filter.py` | `request` | Block/allow URLs |
 | `doh_filter.py` | `async request` | DOH domain lookup (httpx) |
 | `safesearch.py` | `request` | Rewrite search URLs |
