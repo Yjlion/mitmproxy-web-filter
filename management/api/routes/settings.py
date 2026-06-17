@@ -18,7 +18,7 @@ _SECRET_FIELDS = ("password_hash", "secret_key")
 
 def _load() -> GlobalSettings:
     if _SETTINGS_PATH.exists():
-        return GlobalSettings.model_validate_json(_SETTINGS_PATH.read_text())
+        return GlobalSettings.model_validate_json(_SETTINGS_PATH.read_text(encoding="utf-8-sig"))
     return GlobalSettings()
 
 

@@ -46,7 +46,7 @@ Two processes share the `policies/` directory:
 ## Key Design Decisions
 
 - **Policy = JSON file**: one file per policy in `policies/`. File name = `{safe_policy_name}.json`. Proxy watches for changes and hot-reloads without restart.
-- **Source IP matching**: first matching policy wins (checked in file sort order). Policies with empty `source_ips` act as catch-all, checked last.
+- **Source IP matching**: matched by specificity, most specific first — (1) exact single-IP match, (2) CIDR block match (the narrowest/longest-prefix matching block wins), (3) catch-all (empty `source_ips`). Within a tier, policies are checked in file sort order (first wins).
 - **Addon execution order**: `policy_router` → `mitm_control` → `url_filter` → `doh_filter` → `safesearch` → `youtube_filter` → then response hooks in reverse: `text_classifier` → `image_classifier`.
 - **Allow list short-circuits everything**: `url_filter.allow` match sets `flow.metadata["url_allowed"] = True`, which all other addons check and skip.
 - **MITM bypass**: done via `ctx.options.ignore_hosts` (global regex), aggregated from all policies' `mitm.mode == "exclude"` lists. Per-IP TLS bypass is architecturally limited.

@@ -28,7 +28,7 @@ from shared.models import GlobalSettings
 def load_settings() -> GlobalSettings:
     p = Path("config/settings.json")
     if p.exists():
-        return GlobalSettings.model_validate_json(p.read_text())
+        return GlobalSettings.model_validate_json(p.read_text(encoding="utf-8-sig"))
     return GlobalSettings()
 
 

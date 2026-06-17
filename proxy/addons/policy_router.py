@@ -22,7 +22,7 @@ _project_root: Path = Path(__file__).parent.parent.parent
 def load_settings() -> GlobalSettings:
     path = _project_root / "config" / "settings.json"
     if path.exists():
-        return GlobalSettings.model_validate_json(path.read_text())
+        return GlobalSettings.model_validate_json(path.read_text(encoding="utf-8-sig"))
     return GlobalSettings()
 
 
@@ -30,7 +30,10 @@ def load_policies(policies_dir: Path) -> list[Policy]:
     loaded: list[Policy] = []
     for f in sorted(policies_dir.glob("*.json")):
         try:
-            data = json.loads(f.read_text())
+            # utf-8-sig transparently strips a UTF-8 BOM, which hand-edited
+            # files (e.g. saved by PowerShell's Set-Content -Encoding utf8)
+            # often carry and which would otherwise make json.loads fail.
+            data = json.loads(f.read_text(encoding="utf-8-sig"))
             loaded.append(Policy.model_validate(data))
         except Exception as e:
             logger.warning("Failed to load policy %s: %s", f.name, e)
@@ -56,25 +59,49 @@ def _client_addrs(client_ip: str):
 
 
 def get_policy(client_ip: str) -> Policy | None:
+    """Match a client to a policy by specificity, most specific first:
+
+      1. Exact single-IP match.
+      2. CIDR block match (the narrowest matching block wins — i.e. the one
+         with the longest prefix; ties broken by file sort order).
+      3. Catch-all: a policy with empty source_ips.
+
+    Within a tier, policies are considered in file sort order (first wins)."""
     addrs = _client_addrs(client_ip)
     if not addrs:
         return None
 
+    # Tier 1: exact single-IP match.
     for policy in _policies:
         for src in policy.source_ips:
+            if "/" in src:
+                continue
             try:
-                if "/" in src:
-                    net = ip_network(src, strict=False)
-                    if any(a.version == net.version and a in net for a in addrs):
-                        return policy
-                else:
-                    target = ip_address(src)
-                    if any(a == target for a in addrs):
-                        return policy
+                target = ip_address(src)
             except ValueError:
                 continue
+            if any(a == target for a in addrs):
+                return policy
 
-    # Fall back to default policy (empty source_ips means "catch-all")
+    # Tier 2: CIDR block match — prefer the narrowest (longest-prefix) block.
+    best_policy: Policy | None = None
+    best_prefixlen = -1
+    for policy in _policies:
+        for src in policy.source_ips:
+            if "/" not in src:
+                continue
+            try:
+                net = ip_network(src, strict=False)
+            except ValueError:
+                continue
+            if any(a.version == net.version and a in net for a in addrs):
+                if net.prefixlen > best_prefixlen:
+                    best_policy = policy
+                    best_prefixlen = net.prefixlen
+    if best_policy is not None:
+        return best_policy
+
+    # Tier 3: catch-all (empty source_ips).
     for policy in _policies:
         if not policy.source_ips:
             return policy
