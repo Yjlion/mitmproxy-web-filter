@@ -78,6 +78,9 @@ jobs:
           # start from sane defaults; never ship a real (secret-bearing) settings.json
           cp config/settings.example.json "dist/$APPDIR/config/settings.json"
           mkdir -p "dist/$APPDIR/certs" "dist/$APPDIR/logs"
+          # Record the release tag so the app can report its version (the archive
+          # ships without a .git directory, so git describe is unavailable there).
+          echo "${{ inputs.tag_name || github.ref_name }}" > "dist/$APPDIR/VERSION"
           # strip caches
           find "dist/$APPDIR" -name '__pycache__' -type d -prune -exec rm -rf {} + || true
 

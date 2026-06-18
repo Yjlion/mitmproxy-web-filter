@@ -11,6 +11,9 @@ dist/
 *.tar.gz
 *.zip
 
+# Release version stamp — written by CI into the archive, never committed
+/VERSION
+
 # Generated at runtime — never commit
 certs/
 logs/

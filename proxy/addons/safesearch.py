@@ -112,6 +112,11 @@ class SafeSearch:
         # Per-engine tab blocking. Absent entry = nothing blocked for this engine
         # (the SafeSearch parameter below is still enforced).
         eng_cfg = cfg.engines.get(engine["name"])
+        # Per-engine on/off. Absent entry = enabled (SafeSearch enforced by
+        # default); an explicit entry with enabled=False skips this engine
+        # entirely (no SafeSearch parameter, no tab blocking).
+        if eng_cfg and not eng_cfg.enabled:
+            return
         block_images = bool(eng_cfg and eng_cfg.block_images_tab)
         block_videos = bool(eng_cfg and eng_cfg.block_videos_tab)
         block_ai = bool(eng_cfg and eng_cfg.block_ai_tab)
