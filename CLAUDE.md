@@ -58,7 +58,8 @@ mitmproxy-web-filter/
 │   │   ├── pac.py                # Proxy Auto-Config (PAC) generator
 │   │   └── routes/
 │   │       ├── policies.py       # CRUD for policies/*.json
-│   │       └── settings.py       # Global settings read/write; password change
+│   │       ├── settings.py       # Global settings read/write; password change
+│   │       └── certs.py          # Export/import the CA bundle (cert + key) for migration
 │   └── ui/                       # Vanilla JS + Alpine.js + Tailwind CSS SPA
 │       ├── index.html            # Dashboard (status, policy list, activity tabs)
 │       ├── policies.html         # Policy list

@@ -229,19 +229,35 @@
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.safe ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div x-show="open.safe" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
-            <div class="space-y-2">
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_images_tab" />
-                <span class="text-sm text-gray-700" data-i18n="ed.blockImagesTab">Block image search tab</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_videos_tab" />
-                <span class="text-sm text-gray-700" data-i18n="ed.blockVideosTab">Block video search tab</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="toggle" x-model="policy.safesearch.block_ai_tab" />
-                <span class="text-sm text-gray-700" data-i18n="ed.blockAiTab">Block AI search (Gemini, Copilot, etc.)</span>
-              </label>
+            <p class="text-xs text-gray-500" data-i18n="ed.safesearchTabsNote">SafeSearch is enforced on every supported engine when enabled. Optionally block specific search tabs per engine:</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs font-medium text-gray-500">
+                    <th class="py-2 pr-4" data-i18n="ed.ssEngine">Engine</th>
+                    <th class="py-2 px-3 text-center" data-i18n="ed.ssImages">Images</th>
+                    <th class="py-2 px-3 text-center" data-i18n="ed.ssVideos">Videos</th>
+                    <th class="py-2 px-3 text-center" data-i18n="ed.ssAi">AI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="eng in safeEngines" :key="eng.id">
+                    <tr class="border-t border-gray-50">
+                      <td class="py-2 pr-4 font-medium text-gray-700" x-text="eng.label"></td>
+                      <td class="py-2 px-3 text-center">
+                        <input type="checkbox" class="toggle" x-model="policy.safesearch.engines[eng.id].block_images_tab" />
+                      </td>
+                      <td class="py-2 px-3 text-center">
+                        <input type="checkbox" class="toggle" x-model="policy.safesearch.engines[eng.id].block_videos_tab" />
+                      </td>
+                      <td class="py-2 px-3 text-center">
+                        <template x-if="eng.ai"><input type="checkbox" class="toggle" x-model="policy.safesearch.engines[eng.id].block_ai_tab" /></template>
+                        <template x-if="!eng.ai"><span class="text-gray-300">—</span></template>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
             </div>
             <div>
               <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
@@ -508,6 +524,14 @@
         ipInput: '',
         ipError: '',
         open: { url: false, doh: false, safe: false, yt: false, text: false, img: false, mitm: false, bp: false },
+        // SafeSearch engines (id must match proxy/addons/safesearch.py). ai=false
+        // hides the AI column for engines with no AI assistant to block.
+        safeEngines: [
+          { id: 'google', label: 'Google', ai: true },
+          { id: 'bing', label: 'Bing', ai: true },
+          { id: 'duckduckgo', label: 'DuckDuckGo', ai: true },
+          { id: 'yahoo', label: 'Yahoo', ai: false },
+        ],
         // text area mirrors
         allowText: '', blockText: '',
         dohExcludeText: '', dohIncludeText: '',
@@ -548,9 +572,28 @@
                 this.policy.url_filter.mode = this.policy.url_filter.mode || 'blacklist';
                 this.policy.mitm.ua_mode = this.policy.mitm.ua_mode || 'off';
                 this.policy.mitm.user_agents = this.policy.mitm.user_agents || [];
+                this._normalizeSafeEngines();
                 this._syncTextAreas();
               }
             } catch (e) { this.showAlert(window.wfT('ed.failLoad'), 'error'); }
+          }
+        },
+
+        _normalizeSafeEngines() {
+          const ss = this.policy.safesearch;
+          if (!ss.engines || typeof ss.engines !== 'object') ss.engines = {};
+          // Migrate the older global flags (applied to every engine) if present.
+          const legacy = {
+            block_images_tab: !!ss.block_images_tab,
+            block_videos_tab: !!ss.block_videos_tab,
+            block_ai_tab: !!ss.block_ai_tab,
+          };
+          const hadLegacy = (legacy.block_images_tab || legacy.block_videos_tab || legacy.block_ai_tab)
+            && Object.keys(ss.engines).length === 0;
+          delete ss.block_images_tab; delete ss.block_videos_tab; delete ss.block_ai_tab;
+          for (const eng of this.safeEngines) {
+            const base = hadLegacy ? { ...legacy } : { block_images_tab: false, block_videos_tab: false, block_ai_tab: false };
+            ss.engines[eng.id] = Object.assign(base, ss.engines[eng.id] || {});
           }
         },
 
@@ -618,7 +661,12 @@
         source_ips: [],
         url_filter: { enabled: false, allow: [], block: [], mode: 'blacklist', categories: [] },
         doh: { enabled: false, server: 'https://1.1.1.3/dns-query', exclude: [], include_only: [] },
-        safesearch: { enabled: false, block_images_tab: false, block_videos_tab: false, block_ai_tab: false, exclude: [], include_only: [] },
+        safesearch: { enabled: false, engines: {
+          google: { block_images_tab: false, block_videos_tab: false, block_ai_tab: false },
+          bing: { block_images_tab: false, block_videos_tab: false, block_ai_tab: false },
+          duckduckgo: { block_images_tab: false, block_videos_tab: false, block_ai_tab: false },
+          yahoo: { block_images_tab: false, block_videos_tab: false, block_ai_tab: false },
+        }, exclude: [], include_only: [] },
         youtube: { enabled: false, mode: 'blacklist', channels: [], exclude: [], include_only: [], block_home: true, remove_comments: false, remove_recommendations: false },
         text_classifier: { enabled: false, threshold: 0.8, exclude: [], include_only: [] },
         image_classifier: { enabled: false, action: 'blur', threshold: 0.4, exclude: [], include_only: [] },

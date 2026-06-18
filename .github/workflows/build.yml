@@ -29,6 +29,15 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
+      - name: Refresh site category blocklists
+        shell: bash
+        run: |
+          # Populate categories/ so the release archive ships up-to-date lists.
+          # Non-fatal: if the upstream source is down, fall back to whatever is
+          # committed in the repo rather than failing the whole release.
+          bash scripts/update_categories.sh || echo "::warning::update_categories failed; shipping committed category lists"
+          mkdir -p categories   # ensure the dir exists for the copy step even if the fetch failed
+
       - name: Build self-contained archive
         shell: bash
         env:
@@ -62,7 +71,7 @@ jobs:
 
           # 3) Assemble the distribution directory.
           rm -rf dist && mkdir -p "dist/$APPDIR"
-          cp -r proxy management shared scripts config policies \
+          cp -r proxy management shared scripts config policies categories \
                 requirements.txt CLAUDE.md README.md start.sh start.bat \
                 install.sh install.bat "dist/$APPDIR/"
           mv runtime "dist/$APPDIR/runtime"
@@ -85,7 +94,7 @@ jobs:
         run: |
           set -eux
           if [ "$RUNNER_OS" = "Windows" ]; then RTPY="dist/web-filter-proxy/runtime/python.exe"; else RTPY="dist/web-filter-proxy/runtime/bin/python3"; fi
-          "$RTPY" -c "import mitmproxy, fastapi, uvicorn, httpx, dns, nudenet, PIL, bs4; print('bundled imports OK')"
+          "$RTPY" -c "import mitmproxy, fastapi, uvicorn, httpx, dns, nudenet, PIL, bs4, multipart; print('bundled imports OK')"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

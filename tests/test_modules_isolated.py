@@ -155,8 +155,12 @@ class TestSafeSearchIsolated:
 
     def test_blocks_image_tab(self):
         from proxy.addons.safesearch import SafeSearch
+        from shared.models import SafeSearchEngineConfig
         flow = FakeFlow("https://www.bing.com/images/search?q=x")
-        flow.metadata["policy"] = only("safesearch", block_images_tab=True)
+        flow.metadata["policy"] = only(
+            "safesearch",
+            engines={"bing": SafeSearchEngineConfig(block_images_tab=True)},
+        )
         SafeSearch().request(flow)
         assert is_block_page(flow.response)
 

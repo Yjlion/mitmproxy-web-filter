@@ -70,6 +70,11 @@ def _match_engine(host: str) -> dict | None:
             return engine
         if engine["domain_suffix"] and engine["domain_suffix"] in host:
             return engine
+        # AI assistants live on their own hostnames (e.g. copilot.microsoft.com
+        # for bing) — match them so per-engine AI blocking can resolve.
+        for ai_domain in engine.get("ai_domains", set()):
+            if host == ai_domain or host.endswith("." + ai_domain):
+                return engine
     return None
 
 
@@ -104,8 +109,15 @@ class SafeSearch:
         parsed = urlparse(url)
         path = parsed.path
 
+        # Per-engine tab blocking. Absent entry = nothing blocked for this engine
+        # (the SafeSearch parameter below is still enforced).
+        eng_cfg = cfg.engines.get(engine["name"])
+        block_images = bool(eng_cfg and eng_cfg.block_images_tab)
+        block_videos = bool(eng_cfg and eng_cfg.block_videos_tab)
+        block_ai = bool(eng_cfg and eng_cfg.block_ai_tab)
+
         # Block AI search engines/tabs
-        if cfg.block_ai_tab:
+        if block_ai:
             for ai_domain in engine.get("ai_domains", set()):
                 if host == ai_domain or host.endswith("." + ai_domain):
                     flow.response = make_block_response(
@@ -114,7 +126,7 @@ class SafeSearch:
                     return
 
         # Block image search tab
-        if cfg.block_images_tab:
+        if block_images:
             for img_path in engine.get("images_paths", []):
                 if path.startswith(img_path):
                     flow.response = make_block_response(
@@ -131,7 +143,7 @@ class SafeSearch:
                     return
 
         # Block video search tab
-        if cfg.block_videos_tab:
+        if block_videos:
             for vid_path in engine.get("videos_paths", []):
                 if path.startswith(vid_path):
                     flow.response = make_block_response(

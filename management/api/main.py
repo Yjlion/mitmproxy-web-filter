@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 
-from management.api.routes import policies, settings as settings_router
+from management.api.routes import policies, settings as settings_router, certs
 from management.api import auth, pac
 from shared.models import GlobalSettings
 
@@ -93,6 +93,7 @@ def logout():
 
 app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(settings_router.router, prefix="/api/settings", tags=["settings"])
+app.include_router(certs.router, prefix="/api/certs", tags=["certs"])
 
 
 @app.get("/api/status")

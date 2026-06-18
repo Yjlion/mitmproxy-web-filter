@@ -56,13 +56,42 @@ class ImageClassifierConfig(BaseModel):
     include_only: list[str] = Field(default_factory=list)
 
 
-class SafeSearchConfig(BaseModel):
-    enabled: bool = False
+# Search engines that support per-engine tab blocking. Must match the "name"
+# field of the engine definitions in proxy/addons/safesearch.py.
+SAFESEARCH_ENGINES = ("google", "bing", "duckduckgo", "yahoo")
+
+
+class SafeSearchEngineConfig(BaseModel):
     block_images_tab: bool = False
     block_videos_tab: bool = False
     block_ai_tab: bool = False
+
+
+class SafeSearchConfig(BaseModel):
+    enabled: bool = False
+    # Per-engine tab blocking, keyed by engine name (see SAFESEARCH_ENGINES).
+    # SafeSearch's URL parameter is always enforced on every supported engine
+    # when enabled; these flags additionally block specific search tabs.
+    engines: dict[str, SafeSearchEngineConfig] = Field(default_factory=dict)
     exclude: list[str] = Field(default_factory=list)
     include_only: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate_global_tabs(cls, data):
+        """Upgrade the older global block_*_tab flags (which applied to every
+        engine) into the per-engine `engines` map."""
+        if not isinstance(data, dict):
+            return data
+        d = dict(data)
+        legacy = {
+            k: bool(d.pop(k))
+            for k in ("block_images_tab", "block_videos_tab", "block_ai_tab")
+            if k in d
+        }
+        if legacy and not d.get("engines") and any(legacy.values()):
+            d["engines"] = {name: dict(legacy) for name in SAFESEARCH_ENGINES}
+        return d
 
 
 class YouTubeConfig(BaseModel):
