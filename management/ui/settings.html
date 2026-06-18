@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings — WebFilter Proxy</title>
+  <title data-i18n="doc.settings">Settings — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="i18n.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>[x-cloak] { display: none !important; }</style>
 </head>
@@ -24,15 +25,19 @@
       <nav class="flex-1 px-3 py-4 space-y-1">
         <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Dashboard
+          <span data-i18n="nav.dashboard">Dashboard</span>
         </a>
         <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          Policies
+          <span data-i18n="nav.policies">Policies</span>
         </a>
         <a href="logs.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          Logs
+          <span data-i18n="nav.logs">Logs</span>
+        </a>
+        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
         </a>
         <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -40,18 +45,22 @@
         </a>
         <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Settings
+          <span data-i18n="nav.settings">Settings</span>
         </a>
       </nav>
-      <div class="px-3 py-4 border-t border-gray-700 space-y-1">
+      <div class="px-3 py-4 border-t border-gray-700 space-y-2">
+        <label class="block px-3">
+          <span class="text-xs text-gray-500" data-i18n="lang.label">Language</span>
+          <select class="wf-lang-select mt-1 w-full bg-gray-800 text-gray-200 text-xs rounded px-2 py-1 border border-gray-700 focus:outline-none"></select>
+        </label>
         <a href="/api/ca-cert" class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          Download CA Cert
+          <span data-i18n="nav.downloadCert">Download CA Cert</span>
         </a>
         <button x-show="settings.auth_enabled && settings.has_password" x-cloak @click="logout()"
                 class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2 w-full">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Sign out
+          <span data-i18n="nav.signOut">Sign out</span>
         </button>
       </div>
     </aside>
@@ -59,19 +68,28 @@
     <main class="flex-1 overflow-auto">
       <div class="px-8 py-6 max-w-2xl mx-auto">
         <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
-          <p class="text-sm text-gray-500 mt-1">Global proxy configuration</p>
+          <h1 class="text-2xl font-bold text-gray-900" data-i18n="set.title">Settings</h1>
+          <p class="text-sm text-gray-500 mt-1" data-i18n="set.subtitle">Global proxy configuration</p>
         </div>
 
         <div x-show="alert" x-cloak class="mb-4 px-4 py-3 rounded-lg text-sm"
              :class="alertType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'"
              x-text="alert"></div>
 
+        <!-- Interface language -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-3 mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.language">Interface Language</h2>
+            <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.languageDesc">Language for this management interface and the block page shown to filtered clients.</p>
+          </div>
+          <select class="wf-lang-select w-full sm:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+        </div>
+
         <!-- Proxy bind -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Proxy Listen Addresses</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Where the filtering proxy accepts connections. Add multiple to bind several addresses/ports.</p>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.proxyListen">Proxy Listen Addresses</h2>
+            <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.proxyListenDesc">Where the filtering proxy accepts connections. Add multiple to bind several addresses/ports.</p>
           </div>
           <div class="space-y-2">
             <template x-for="(addr, i) in settings.proxy_listen" :key="i">
@@ -83,37 +101,37 @@
               </div>
             </template>
             <button type="button" @click="settings.proxy_listen.push('0.0.0.0:8080')"
-                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add listen address</button>
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.addListen">+ Add listen address</button>
           </div>
-          <p class="text-xs text-gray-400">Format <span class="font-mono">host:port</span>. Examples: <span class="font-mono">0.0.0.0:8080</span> (all IPv4), <span class="font-mono">[::]:8080</span> (all IPv6), <span class="font-mono">[::1]:8080</span> (IPv6 localhost), <span class="font-mono">192.168.1.10:3128</span>.</p>
+          <p class="text-xs text-gray-400" data-i18n="set.listenFormat">Format host:port. Examples: 0.0.0.0:8080 (all IPv4), [::]:8080 (all IPv6), [::1]:8080 (IPv6 localhost), 192.168.1.10:3128.</p>
         </div>
 
         <!-- Management bind -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Management Server</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Bind for this admin interface — independent of the proxy listen settings.</p>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.mgmtServer">Management Server</h2>
+            <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.mgmtServerDesc">Bind for this admin interface — independent of the proxy listen settings.</p>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Management Host</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.mgmtHost">Management Host</label>
               <input type="text" x-model="settings.mgmt_host" placeholder="0.0.0.0"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Management Port</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.mgmtPort">Management Port</label>
               <input type="number" x-model.number="settings.mgmt_port"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
-          <p class="text-xs text-gray-400"><span class="font-mono">0.0.0.0</span> = all IPv4 · <span class="font-mono">127.0.0.1</span> = this machine only · <span class="font-mono">::</span> = all IPv6.</p>
+          <p class="text-xs text-gray-400" data-i18n="set.bindHelp">0.0.0.0 = all IPv4 · 127.0.0.1 = this machine only · :: = all IPv6.</p>
         </div>
 
         <!-- Proxy auto-config (PAC / WPAD) -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Proxy Auto-Config (PAC / WPAD)</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Point client devices at one of these URLs (Settings → Automatic proxy configuration), or set <span class="font-mono">wpad</span> via DHCP/DNS for auto-discovery.</p>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.pac">Proxy Auto-Config (PAC / WPAD)</h2>
+            <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.pacDesc">Point client devices at one of these URLs (Settings → Automatic proxy configuration), or set wpad via DHCP/DNS for auto-discovery.</p>
           </div>
           <div class="space-y-2">
             <template x-for="path in ['/proxy.pac', '/wpad.dat']" :key="path">
@@ -121,34 +139,33 @@
                 <input type="text" readonly :value="pacUrl(path)"
                        class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono bg-gray-50 text-gray-700" />
                 <button type="button" @click="copyText(pacUrl(path))"
-                        class="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium">Copy</button>
+                        class="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.copy">Copy</button>
               </div>
             </template>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-700 block mb-1">Advertised proxy host</label>
-            <input type="text" x-model="settings.pac_proxy_host" placeholder="auto (host clients used to reach this page)"
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.advertisedHost">Advertised proxy host</label>
+            <input type="text" x-model="settings.pac_proxy_host" data-i18n-ph="set.advertisedHostPh" placeholder="auto (host clients used to reach this page)"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <p class="text-xs text-gray-400 mt-1">Leave blank to auto-detect. The PAC uses proxy port <span class="font-mono" x-text="status.proxy_port || '8080'"></span>. For IPv6 literals use brackets, e.g. <span class="font-mono">[fd00::1]</span>.</p>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-700 block mb-1">Direct (non-proxied) hosts</label>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.directHosts">Direct (non-proxied) hosts</label>
             <div class="space-y-2">
               <template x-for="(h, i) in settings.pac_direct_hosts" :key="i">
                 <div class="flex items-center gap-2">
-                  <input type="text" x-model="settings.pac_direct_hosts[i]" placeholder="example.com"
+                  <input type="text" x-model="settings.pac_direct_hosts[i]" data-i18n-ph="set.directHostPh" placeholder="example.com"
                          class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   <button type="button" @click="settings.pac_direct_hosts.splice(i, 1)"
                           class="px-2 py-2 text-gray-400 hover:text-red-500" title="Remove">✕</button>
                 </div>
               </template>
               <button type="button" @click="settings.pac_direct_hosts.push('')"
-                      class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add direct host</button>
+                      class="text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.addDirect">+ Add direct host</button>
             </div>
-            <p class="text-xs text-gray-400 mt-1">These bypass the proxy entirely. Subdomains are included automatically. Localhost and private IP ranges are always direct.</p>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.directHelp">These bypass the proxy entirely. Subdomains are included automatically. Localhost and private IP ranges are always direct.</p>
           </div>
           <div class="pt-1">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Settings</button>
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
           </div>
         </div>
 
@@ -156,69 +173,69 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Certificate Directory</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.certDir">Certificate Directory</label>
               <input type="text" x-model="settings.cert_dir"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Policies Directory</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.policiesDir">Policies Directory</label>
               <input type="text" x-model="settings.policies_dir"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-700 block mb-1">Logs Directory</label>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.logsDir">Logs Directory</label>
             <input type="text" x-model="settings.logs_dir" placeholder="./logs"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <p class="text-xs text-gray-400 mt-1">Holds <span class="font-mono">blocks.jsonl</span> and <span class="font-mono">requests.jsonl</span>.</p>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.logsHelp">Holds blocks.jsonl and requests.jsonl.</p>
           </div>
           <div class="space-y-2 pt-1">
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.log_blocks" />
-              <span class="text-sm text-gray-700">Log blocked requests to file</span>
+              <span class="text-sm text-gray-700" data-i18n="set.logBlocks">Log blocked requests to file</span>
             </label>
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.log_requests" />
-              <span class="text-sm text-gray-700">Log all requests to file</span>
+              <span class="text-sm text-gray-700" data-i18n="set.logRequests">Log all requests to file</span>
             </label>
           </div>
           <div class="pt-2">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Settings</button>
-            <p class="text-xs text-gray-400 mt-2">Restart the proxy after changing listen addresses, ports, or the certificate directory.</p>
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
+            <p class="text-xs text-gray-400 mt-2" data-i18n="set.restartNote">Restart the proxy after changing listen addresses, ports, or the certificate directory.</p>
           </div>
         </div>
 
         <!-- Authentication -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4">
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Authentication</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Require a password to open this management interface.</p>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.auth">Authentication</h2>
+            <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.authDesc">Require a password to open this management interface.</p>
           </div>
           <label class="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.auth_enabled" />
-            <span class="text-sm text-gray-700">Require password to access management interface</span>
+            <span class="text-sm text-gray-700" data-i18n="set.requirePw">Require password to access management interface</span>
           </label>
           <div>
             <label class="text-xs font-medium text-gray-700 block mb-1">
-              <span x-text="settings.has_password ? 'Change password' : 'Set password'"></span>
-              <span x-show="settings.has_password" class="text-green-600">· a password is currently set</span>
+              <span x-text="settings.has_password ? $t('set.changePw') : $t('set.setPw')"></span>
+              <span x-show="settings.has_password" class="text-green-600" data-i18n="set.pwSet">· a password is currently set</span>
             </label>
             <input type="password" x-model="newPassword" autocomplete="new-password"
-                   :placeholder="settings.has_password ? 'Leave blank to keep current password' : 'Enter a password'"
+                   :placeholder="settings.has_password ? $t('set.pwKeepPh') : $t('set.pwEnterPh')"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <p class="text-xs text-gray-400 mt-1">Stored salted + hashed (PBKDF2). Put the UI behind HTTPS/VPN if exposed beyond a trusted network.</p>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.pwHelp">Stored salted + hashed (PBKDF2). Put the UI behind HTTPS/VPN if exposed beyond a trusted network.</p>
           </div>
           <div class="pt-1">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Settings</button>
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
           </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-4">
-          <h2 class="text-sm font-semibold text-gray-900 mb-3">CA Certificate</h2>
-          <p class="text-sm text-gray-600 mb-4">Install this certificate on client devices to enable HTTPS inspection.</p>
+          <h2 class="text-sm font-semibold text-gray-900 mb-3" data-i18n="set.caCert">CA Certificate</h2>
+          <p class="text-sm text-gray-600 mb-4" data-i18n="set.caCertDesc">Install this certificate on client devices to enable HTTPS inspection.</p>
           <a href="/api/ca-cert" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Download CA Certificate
+            <span data-i18n="set.downloadCaCert">Download CA Certificate</span>
           </a>
         </div>
       </div>
@@ -228,7 +245,7 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [] },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], ui_language: 'en' },
         status: { proxy_port: null },
         newPassword: '',
         alert: '',
@@ -253,13 +270,16 @@
         pacUrl(path) { return location.origin + path; },
 
         async copyText(text) {
-          try { await navigator.clipboard.writeText(text); this.alert = 'Copied: ' + text; this.alertType = 'success'; }
-          catch (e) { this.alert = 'Copy failed — select and copy manually'; this.alertType = 'error'; }
+          try { await navigator.clipboard.writeText(text); this.alert = window.wfT('set.copied') + text; this.alertType = 'success'; }
+          catch (e) { this.alert = window.wfT('set.copyFailed'); this.alertType = 'error'; }
           setTimeout(() => { this.alert = ''; }, 3000);
         },
 
         async save() {
           const payload = { ...this.settings };
+          // Interface language is managed by the language picker (and persisted
+          // immediately), so don't let a stale value here overwrite it.
+          delete payload.ui_language;
           if (Array.isArray(payload.pac_direct_hosts))
             payload.pac_direct_hosts = payload.pac_direct_hosts.map(h => (h || '').trim()).filter(Boolean);
           if (this.newPassword) payload.new_password = this.newPassword;
@@ -273,14 +293,14 @@
             if (res.ok) {
               this.settings = body;
               this.newPassword = '';
-              this.alert = 'Settings saved';
+              this.alert = window.wfT('set.saved');
               this.alertType = 'success';
             } else {
-              this.alert = body.detail || 'Save failed';
+              this.alert = body.detail || window.wfT('set.saveFailed');
               this.alertType = 'error';
             }
           } catch (e) {
-            this.alert = 'Network error';
+            this.alert = window.wfT('set.netErr');
             this.alertType = 'error';
           }
           setTimeout(() => { this.alert = ''; }, 4000);

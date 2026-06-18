@@ -1,0 +1,19 @@
+# Keep the build context small and never bake local state / secrets into the image.
+.git
+.github
+.venv
+runtime
+dist
+*.tar.gz
+*.zip
+__pycache__
+*.py[cod]
+.pytest_cache
+tests
+certs
+logs
+models/*.joblib
+config/settings.json
+policies/*.json
+!policies/default.json
+categories

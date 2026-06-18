@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}" dir="{{ dir }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Access Blocked</title>
+  <title>{{ labels.title }}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -44,7 +44,7 @@
       font-size: .9rem;
       color: #6b7280;
       margin-bottom: 20px;
-      text-align: left;
+      text-align: start;
     }
     .reason strong { color: #374151; }
     .meta { font-size: .8rem; color: #9ca3af; margin-top: 24px; }
@@ -63,17 +63,17 @@
           d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
       </svg>
     </div>
-    <h1>Access Blocked</h1>
+    <h1>{{ labels.title }}</h1>
     <div class="domain">{{ domain }}</div>
     <div class="reason">
-      <strong>Reason:</strong> {{ reason }}<br/>
-      <strong>Filter:</strong> {{ component }}
+      <strong>{{ labels.reason }}</strong> {{ reason }}<br/>
+      <strong>{{ labels.filter }}</strong> {{ component }}
     </div>
     {% if custom_message %}
     <p class="message">{{ custom_message }}</p>
     {% endif %}
     <div class="meta">
-      Policy: <strong>{{ policy_name }}</strong>
+      {{ labels.policy }} <strong>{{ policy_name }}</strong>
     </div>
   </div>
 </body>

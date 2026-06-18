@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign in — WebFilter Proxy</title>
+  <title data-i18n="doc.login">Sign in — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="i18n.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center" x-data="login()" x-init="init()">
+  <div class="fixed top-4 end-4">
+    <select class="wf-lang-select bg-white text-gray-600 text-xs rounded px-2 py-1 border border-gray-200 focus:outline-none"></select>
+  </div>
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full max-w-sm">
     <div class="flex items-center gap-2 mb-6">
       <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -17,16 +21,16 @@
       </svg>
       <span class="font-bold text-gray-900">WebFilter Proxy</span>
     </div>
-    <h1 class="text-lg font-semibold text-gray-900 mb-1">Sign in</h1>
-    <p class="text-sm text-gray-500 mb-5">Enter the management password.</p>
+    <h1 class="text-lg font-semibold text-gray-900 mb-1" data-i18n="login.title">Sign in</h1>
+    <p class="text-sm text-gray-500 mb-5" data-i18n="login.subtitle">Enter the management password.</p>
 
     <form @submit.prevent="submit()">
-      <input type="password" x-model="password" placeholder="Password" autofocus
+      <input type="password" x-model="password" data-i18n-ph="login.pwPh" placeholder="Password" autofocus
              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       <div x-show="error" x-cloak class="mt-2 text-sm text-red-600" x-text="error"></div>
       <button type="submit" :disabled="busy"
               class="mt-4 w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
-        <span x-text="busy ? 'Signing in…' : 'Sign in'"></span>
+        <span x-text="busy ? $t('login.signingIn') : $t('login.signIn')"></span>
       </button>
     </form>
   </div>
@@ -52,9 +56,9 @@
             });
             if (res.ok) { location.href = 'index.html'; return; }
             const d = await res.json().catch(() => ({}));
-            this.error = d.detail || 'Sign in failed';
+            this.error = d.detail || window.wfT('login.failed');
           } catch (e) {
-            this.error = 'Network error';
+            this.error = window.wfT('login.netErr');
           }
           this.busy = false;
         },

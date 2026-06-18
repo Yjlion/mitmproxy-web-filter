@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Policy Editor — WebFilter Proxy</title>
+  <title data-i18n="doc.editor">Policy Editor — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="i18n.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -34,11 +35,19 @@
       <nav class="flex-1 px-3 py-4 space-y-1">
         <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Dashboard
+          <span data-i18n="nav.dashboard">Dashboard</span>
         </a>
         <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          Policies
+          <span data-i18n="nav.policies">Policies</span>
+        </a>
+        <a href="logs.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span data-i18n="nav.logs">Logs</span>
+        </a>
+        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
         </a>
         <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -46,9 +55,15 @@
         </a>
         <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Settings
+          <span data-i18n="nav.settings">Settings</span>
         </a>
       </nav>
+      <div class="px-3 py-4 border-t border-gray-700">
+        <label class="block px-3">
+          <span class="text-xs text-gray-500" data-i18n="lang.label">Language</span>
+          <select class="wf-lang-select mt-1 w-full bg-gray-800 text-gray-200 text-xs rounded px-2 py-1 border border-gray-700 focus:outline-none"></select>
+        </label>
+      </div>
     </aside>
 
     <!-- Main -->
@@ -56,12 +71,12 @@
       <div class="px-8 py-6 max-w-3xl mx-auto">
         <div class="mb-6 flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900" x-text="isNew ? 'New Policy' : 'Edit Policy'"></h1>
-            <p class="text-sm text-gray-500 mt-1">Configure filtering rules for a set of IP addresses</p>
+            <h1 class="text-2xl font-bold text-gray-900" x-text="$t(isNew ? 'ed.newPolicy' : 'ed.editPolicy')"></h1>
+            <p class="text-sm text-gray-500 mt-1" data-i18n="ed.subtitle">Configure filtering rules for a set of IP addresses</p>
           </div>
           <div class="flex gap-3">
-            <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</a>
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Policy</button>
+            <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" data-i18n="common.cancel">Cancel</a>
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="ed.savePolicy">Save Policy</button>
           </div>
         </div>
 
@@ -73,15 +88,15 @@
         <!-- Basic info -->
         <div class="section">
           <div class="px-6 py-4">
-            <h2 class="text-sm font-semibold text-gray-900 mb-4">Basic Information</h2>
+            <h2 class="text-sm font-semibold text-gray-900 mb-4" data-i18n="ed.basicInfo">Basic Information</h2>
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Policy Name</label>
-                <input x-model="policy.name" type="text" placeholder="e.g. kids, office, guest"
+                <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="ed.policyName">Policy Name</label>
+                <input x-model="policy.name" type="text" data-i18n-ph="ed.policyNamePh" placeholder="e.g. kids, office, guest"
                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Source IP Addresses / CIDR Ranges</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1" data-i18n="ed.sourceIps">Source IP Addresses / CIDR Ranges</label>
                 <div @click="$refs.ipField.focus()" class="border border-gray-200 rounded-lg px-3 py-2 min-h-10 flex flex-wrap gap-1 items-center focus-within:ring-2 focus-within:ring-blue-500 cursor-text">
                   <template x-for="(ip, i) in policy.source_ips" :key="i">
                     <span class="tag">
@@ -90,12 +105,11 @@
                     </span>
                   </template>
                   <input x-ref="ipField" x-model="ipInput" @keydown.enter.prevent="addIp()" @keydown.comma.prevent="addIp()"
-                         @blur="addIp()" placeholder="192.168.1.0/24, 10.0.0.5, 2001:db8::/32, ::1 — press Enter"
+                         @blur="addIp()" data-i18n-ph="ed.ipFieldPh" placeholder="192.168.1.0/24, 10.0.0.5, 2001:db8::/32, ::1 — press Enter"
                          class="flex-1 min-w-48 text-sm outline-none bg-transparent" />
                 </div>
-                <p class="text-xs text-gray-400 mt-1">
-                  IPv4 and IPv6 supported. Examples: <span class="font-mono">192.168.1.0/24</span>, <span class="font-mono">10.0.0.5</span>,
-                  <span class="font-mono">2001:db8::/32</span>, <span class="font-mono">fe80::1</span>. Leave empty to match all clients (catch-all policy).
+                <p class="text-xs text-gray-400 mt-1" data-i18n="ed.ipHelp">
+                  IPv4 and IPv6 supported. Examples: 192.168.1.0/24, 10.0.0.5, 2001:db8::/32, fe80::1. Leave empty to match all clients (catch-all policy).
                 </p>
                 <p x-show="ipError" x-cloak class="text-xs text-red-500 mt-1" x-text="ipError"></p>
               </div>
@@ -109,8 +123,8 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.url_filter.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">URL Filter</div>
-                <div class="text-xs text-gray-500">Block or allow specific URLs and domains</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.urlFilter">URL Filter</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.urlFilterDesc">Block or allow specific URLs and domains</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.url ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -118,13 +132,13 @@
           <div x-show="open.url" class="px-6 pb-5 border-t border-gray-100 pt-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-xs font-medium text-gray-700 block mb-1">Allow List <span class="text-gray-400">(checked first, bypasses all other filters)</span></label>
+                <label class="text-xs font-medium text-gray-700 block mb-1"><span data-i18n="ed.allowList">Allow List</span> <span class="text-gray-400" data-i18n="ed.allowListNote">(checked first, bypasses all other filters)</span></label>
                 <textarea x-model="allowText" @input="policy.url_filter.allow = allowText.split('\n').map(s=>s.trim()).filter(Boolean)"
                           rows="5" placeholder="allowed.com&#10;*.trusted.org"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
               </div>
               <div>
-                <label class="text-xs font-medium text-gray-700 block mb-1">Block List</label>
+                <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.blockList">Block List</label>
                 <textarea x-model="blockText" @input="policy.url_filter.block = blockText.split('\n').map(s=>s.trim()).filter(Boolean)"
                           rows="5" placeholder="bad-site.com&#10;*.gambling.net"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>

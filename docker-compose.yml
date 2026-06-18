@@ -1,0 +1,27 @@
+# WebFilter Proxy — single-container deployment.
+#
+#   docker compose up -d        # build + start in the background
+#   docker compose logs -f      # follow logs
+#   docker compose down         # stop
+#
+# After first start, install the CA certificate on client devices (download it
+# from the management UI at http://<host>:8000 → "Download CA Cert") and point
+# the devices' proxy at <host>:8080.
+services:
+  webfilter:
+    build: .
+    image: webfilter-proxy
+    container_name: webfilter-proxy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # filtering proxy — clients point their proxy here
+      - "8000:8000"   # management UI
+    volumes:
+      # Persist state across container rebuilds. config/ holds settings.json,
+      # certs/ the generated CA, policies/ the per-IP rules, models/ the
+      # downloaded NSFW model, logs/ the block + request logs.
+      - ./config:/app/config
+      - ./certs:/app/certs
+      - ./policies:/app/policies
+      - ./logs:/app/logs
+      - ./models:/app/models
