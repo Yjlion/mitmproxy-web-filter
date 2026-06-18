@@ -135,6 +135,10 @@ class GlobalSettings(BaseModel):
     mgmt_port: int = 8000
     cert_dir: str = "./certs"
     policies_dir: str = "./policies"
+    # Interface language (ISO 639 code). Drives both the management UI and the
+    # proxy-served block page, so it is stored server-side rather than only in
+    # the browser. One of: en, he, yi, es, fr, de, zh.
+    ui_language: str = "en"
     # Single logs directory; individual log files live inside it.
     logs_dir: str = "./logs"
     log_blocks: bool = True

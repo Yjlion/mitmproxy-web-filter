@@ -6,6 +6,7 @@
   "mgmt_port": 8000,
   "cert_dir": "./certs",
   "policies_dir": "./policies",
+  "ui_language": "en",
   "logs_dir": "./logs",
   "log_blocks": true,
   "log_requests": true,

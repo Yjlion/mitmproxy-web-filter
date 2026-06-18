@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logs — WebFilter Proxy</title>
+  <title data-i18n="doc.logs">Logs — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="i18n.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -26,37 +27,47 @@
       <nav class="flex-1 px-3 py-4 space-y-1">
         <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Dashboard
+          <span data-i18n="nav.dashboard">Dashboard</span>
         </a>
         <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          Policies
+          <span data-i18n="nav.policies">Policies</span>
         </a>
         <a href="logs.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          Logs
+          <span data-i18n="nav.logs">Logs</span>
+        </a>
+        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span data-i18n="nav.analytics">Analytics</span>
         </a>
         <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          Settings
+          <span data-i18n="nav.settings">Settings</span>
         </a>
       </nav>
+      <div class="px-3 py-4 border-t border-gray-700">
+        <label class="block px-3">
+          <span class="text-xs text-gray-500" data-i18n="lang.label">Language</span>
+          <select class="wf-lang-select mt-1 w-full bg-gray-800 text-gray-200 text-xs rounded px-2 py-1 border border-gray-700 focus:outline-none"></select>
+        </label>
+      </div>
     </aside>
 
     <main class="flex-1 overflow-auto">
       <div class="px-8 py-6">
         <div class="mb-6 flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Logs</h1>
-            <p class="text-sm text-gray-500 mt-1">Most recent <span x-text="limit"></span> events</p>
+            <h1 class="text-2xl font-bold text-gray-900" data-i18n="logs.title">Logs</h1>
+            <p class="text-sm text-gray-500 mt-1" x-text="$t('logs.recentEvents').replace('{n}', limit)"></p>
           </div>
           <div class="flex items-center gap-3">
-            <input type="text" x-model="filter" placeholder="Filter…"
+            <input type="text" x-model="filter" data-i18n-ph="logs.filterPh" placeholder="Filter…"
                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-              <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="auto" @change="toggleAuto()" /> Auto-refresh
+              <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="auto" @change="toggleAuto()" /> <span data-i18n="logs.autoRefresh">Auto-refresh</span>
             </label>
-            <button @click="load()" class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Refresh</button>
+            <button @click="load()" class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="logs.refresh">Refresh</button>
           </div>
         </div>
 
@@ -64,24 +75,24 @@
           <div class="px-6 pt-3 border-b border-gray-100 flex items-center gap-1">
             <button @click="tab='blocks'; load()"
                     :class="tab==='blocks' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">Blocks</button>
+                    class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors" data-i18n="logs.blocks">Blocks</button>
             <button @click="tab='requests'; load()"
                     :class="tab==='requests' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                    class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">All Requests</button>
-            <span class="ml-auto text-xs text-gray-400 self-center" x-text="filtered.length + ' shown'"></span>
+                    class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors" data-i18n="logs.allRequests">All Requests</button>
+            <span class="ml-auto text-xs text-gray-400 self-center" x-text="$t('logs.shown').replace('{n}', filtered.length)"></span>
           </div>
 
           <!-- Blocks -->
           <div x-show="tab==='blocks'" class="overflow-x-auto">
-            <div x-show="filtered.length===0" class="px-6 py-10 text-center text-gray-400 text-sm">No blocks.</div>
+            <div x-show="filtered.length===0" class="px-6 py-10 text-center text-gray-400 text-sm" data-i18n="logs.noBlocks">No blocks.</div>
             <table x-show="filtered.length>0" class="w-full text-sm">
               <thead><tr class="border-b border-gray-100 text-left">
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Time</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Domain</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Reason</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Filter</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Policy</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Client</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.time">Time</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.domain">Domain</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.reason">Reason</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.filter">Filter</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.policy">Policy</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.client">Client</th>
               </tr></thead>
               <tbody>
                 <template x-for="(b,i) in filtered" :key="i">
@@ -100,16 +111,16 @@
 
           <!-- Requests -->
           <div x-show="tab==='requests'" x-cloak class="overflow-x-auto">
-            <div x-show="filtered.length===0" class="px-6 py-10 text-center text-gray-400 text-sm">No requests.</div>
+            <div x-show="filtered.length===0" class="px-6 py-10 text-center text-gray-400 text-sm" data-i18n="logs.noRequests">No requests.</div>
             <table x-show="filtered.length>0" class="w-full text-sm">
               <thead><tr class="border-b border-gray-100 text-left">
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Time</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Method</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Host</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Path</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Action</th>
-                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Client</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.time">Time</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.method">Method</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.host">Host</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.path">Path</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.status">Status</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.action">Action</th>
+                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase" data-i18n="th.client">Client</th>
               </tr></thead>
               <tbody>
                 <template x-for="(r,i) in filtered" :key="i">
@@ -122,7 +133,7 @@
                         :class="r.status>=400 ? 'text-red-600' : r.status>=300 ? 'text-amber-600' : 'text-gray-600'"></span></td>
                     <td class="px-6 py-2">
                       <span class="badge" :class="r.action==='blocked' ? 'bg-red-100 text-red-700' : r.action==='modified' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'"
-                            x-text="r.action==='ok' ? 'allowed' : r.action"></span>
+                            x-text="r.action==='ok' ? $t('action.allowed') : $t('action.' + r.action, r.action)"></span>
                       <span x-show="r.component" class="ml-1 text-xs text-gray-400" x-text="r.component"></span>
                     </td>
                     <td class="px-6 py-2 font-mono text-xs text-gray-500" x-text="r.client_ip"></td>
