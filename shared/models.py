@@ -62,6 +62,7 @@ SAFESEARCH_ENGINES = ("google", "bing", "duckduckgo", "yahoo")
 
 
 class SafeSearchEngineConfig(BaseModel):
+    enabled: bool = True
     block_images_tab: bool = False
     block_videos_tab: bool = False
     block_ai_tab: bool = False

@@ -227,6 +227,7 @@
       "ed.blockAiTab": "Block AI search (Gemini, Copilot, etc.)",
       "ed.safesearchTabsNote": "SafeSearch is enforced on every supported engine when enabled. Optionally block specific search tabs per engine:",
       "ed.ssEngine": "Engine",
+      "ed.ssOn": "On",
       "ed.ssImages": "Images",
       "ed.ssVideos": "Videos",
       "ed.ssAi": "AI",
@@ -1736,6 +1737,22 @@
     });
   }
 
+  // Inject a small version label in the sidebar's bottom corner. The sidebar is
+  // duplicated per page but always an <aside>; the login page has none (guarded).
+  // The version is reported by the server (/api/version), which reflects the
+  // GitHub release tag.
+  function injectVersion() {
+    const aside = document.querySelector("aside");
+    if (!aside || aside.querySelector(".wf-version")) return;
+    const el = document.createElement("div");
+    el.className = "wf-version px-6 pb-3 text-[10px] text-gray-600 select-none";
+    aside.appendChild(el);
+    fetch("/api/version")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && d.version) el.textContent = d.version; })
+      .catch(() => {});
+  }
+
   // Populate every <select class="wf-lang-select"> with the language options.
   function buildSelects() {
     const cur = getLang();
@@ -1808,6 +1825,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     applyI18n(document);
     buildSelects();
+    injectVersion();
     syncFromServer();
   });
 })();

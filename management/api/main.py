@@ -14,11 +14,12 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 from management.api.routes import policies, settings as settings_router, certs
 from management.api import auth, pac
 from shared.models import GlobalSettings
+from shared.version import get_version
 
 _ROOT = Path(__file__).parent.parent.parent
 _SETTINGS_PATH = _ROOT / "config" / "settings.json"
 
-app = FastAPI(title="WebFilter Proxy Management", version="1.0.0")
+app = FastAPI(title="WebFilter Proxy Management", version=get_version())
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,8 +39,13 @@ def _load_settings() -> GlobalSettings:
 # so unauthenticated devices can fetch the proxy auto-config file).
 _PUBLIC_PATHS = {
     "/login.html", "/api/login", "/api/logout", "/api/auth-status",
-    "/proxy.pac", "/wpad.dat", "/wpad.da",
+    "/api/version", "/proxy.pac", "/wpad.dat", "/wpad.da",
 }
+
+
+@app.get("/api/version")
+def get_app_version():
+    return {"version": get_version()}
 
 
 @app.middleware("http")
