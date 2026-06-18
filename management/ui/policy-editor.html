@@ -49,10 +49,6 @@
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           <span data-i18n="nav.analytics">Analytics</span>
         </a>
-        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          Analytics
-        </a>
         <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span data-i18n="nav.settings">Settings</span>
@@ -146,20 +142,20 @@
             </div>
             <div class="mt-4 border-t border-gray-100 pt-3">
               <div class="flex items-center justify-between mb-2">
-                <label class="text-xs font-medium text-gray-700">Categories <span class="text-gray-400">(the allow / block lists above take precedence)</span></label>
+                <label class="text-xs font-medium text-gray-700"><span data-i18n="ed.categories">Categories</span> <span class="text-gray-400" data-i18n="ed.categoriesNote">(the allow / block lists above take precedence)</span></label>
                 <div class="flex gap-3">
                   <label class="flex items-center gap-1.5 cursor-pointer">
                     <input type="radio" x-model="policy.url_filter.mode" value="blacklist" class="text-blue-600" />
-                    <span class="text-xs text-gray-700">Blacklist (block these)</span>
+                    <span class="text-xs text-gray-700" data-i18n="ed.blacklistBlock">Blacklist (block these)</span>
                   </label>
                   <label class="flex items-center gap-1.5 cursor-pointer">
                     <input type="radio" x-model="policy.url_filter.mode" value="whitelist" class="text-blue-600" />
-                    <span class="text-xs text-gray-700">Whitelist (allow only these)</span>
+                    <span class="text-xs text-gray-700" data-i18n="ed.whitelistAllow">Whitelist (allow only these)</span>
                   </label>
                 </div>
               </div>
-              <p class="text-xs text-gray-400 mb-2" x-text="policy.url_filter.mode === 'whitelist' ? 'Only sites in the selected categories are allowed; everything else is blocked.' : 'Sites in the selected categories are blocked.'"></p>
-              <div x-show="categories.length===0" class="text-xs text-gray-400">No categories installed yet. Run <span class="font-mono">scripts/update_categories.sh</span> on the server.</div>
+              <p class="text-xs text-gray-400 mb-2" x-text="policy.url_filter.mode === 'whitelist' ? $t('ed.catWhitelistHelp') : $t('ed.catBlacklistHelp')"></p>
+              <div x-show="categories.length===0" class="text-xs text-gray-400" data-i18n="ed.noCategories">No categories installed yet. Run <span class="font-mono">scripts/update_categories.sh</span> on the server.</div>
               <div class="grid grid-cols-3 gap-x-4 gap-y-1">
                 <template x-for="c in categories" :key="c.name">
                   <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -179,17 +175,17 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.doh.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">DNS over HTTPS (DOH)</div>
-                <div class="text-xs text-gray-500">Block domains via a DOH resolver (e.g. family/malware filters)</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.doh">DNS over HTTPS (DOH)</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.dohDesc">Block domains via a DOH resolver (e.g. family/malware filters)</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.doh ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div x-show="open.doh" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">DOH Server URL</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.dohServer">DOH Server URL</label>
               <input type="text" x-model="policy.doh.server" list="doh-presets"
-                     placeholder="https://your-doh-server/dns-query"
+                     data-i18n-ph="ed.dohServerPh" placeholder="https://your-doh-server/dns-query"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <datalist id="doh-presets">
                 <option value="https://1.1.1.3/dns-query">Cloudflare Family — blocks malware + adult</option>
@@ -200,17 +196,18 @@
                 <option value="https://dns.adguard-dns.com/dns-query">AdGuard Default</option>
                 <option value="https://family.adguard-dns.com/dns-query">AdGuard Family</option>
               </datalist>
-              <p class="text-xs text-gray-400 mt-1">Pick a preset or type any standard DoH endpoint (RFC 8484), e.g. NextDNS <span class="font-mono">https://dns.nextdns.io/&lt;your-id&gt;</span>. A domain is blocked when the resolver returns NXDOMAIN or sinkholes it (0.0.0.0 / ::).</p>
+              <p class="text-xs text-gray-400 mt-1" data-i18n="ed.dohHelp">Pick a preset or type any standard DoH endpoint (RFC 8484), e.g. NextDNS <span class="font-mono">https://dns.nextdns.io/&lt;your-id&gt;</span>. A domain is blocked when the resolver returns NXDOMAIN or sinkholes it (0.0.0.0 / ::).</p>
+              <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2" data-i18n="ed.dohFirewallNote">Note: DoH queries leave the proxy as outbound HTTPS to the resolver. A restrictive network firewall may block or intercept them — if DoH filtering seems inactive, confirm the proxy host can reach the resolver on port 443.</p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+                <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
                 <textarea x-model="dohExcludeText" @input="policy.doh.exclude = dohExcludeText.split('\n').map(s=>s.trim()).filter(Boolean)"
                           rows="3" placeholder="school.edu&#10;work-intranet.local"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
               </div>
               <div>
-                <label class="text-xs font-medium text-gray-700 block mb-1">Only Apply To <span class="text-gray-400">(leave blank for all)</span></label>
+                <label class="text-xs font-medium text-gray-700 block mb-1"><span data-i18n="ed.onlyApplyTo">Only Apply To</span> <span class="text-gray-400" data-i18n="ed.leaveBlankAll">(leave blank for all)</span></label>
                 <textarea x-model="dohIncludeText" @input="policy.doh.include_only = dohIncludeText.split('\n').map(s=>s.trim()).filter(Boolean)"
                           rows="3" placeholder="specific-domain.com"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
@@ -225,8 +222,8 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.safesearch.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">SafeSearch</div>
-                <div class="text-xs text-gray-500">Enforce safe search on Google, Bing, DuckDuckGo, Yahoo</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.safesearch">SafeSearch</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.safesearchDesc">Enforce safe search on Google, Bing, DuckDuckGo, Yahoo</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.safe ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -235,19 +232,19 @@
             <div class="space-y-2">
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" class="toggle" x-model="policy.safesearch.block_images_tab" />
-                <span class="text-sm text-gray-700">Block image search tab</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.blockImagesTab">Block image search tab</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" class="toggle" x-model="policy.safesearch.block_videos_tab" />
-                <span class="text-sm text-gray-700">Block video search tab</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.blockVideosTab">Block video search tab</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" class="toggle" x-model="policy.safesearch.block_ai_tab" />
-                <span class="text-sm text-gray-700">Block AI search (Gemini, Copilot, etc.)</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.blockAiTab">Block AI search (Gemini, Copilot, etc.)</span>
               </label>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
               <input x-model="safeExcludeText" @input="policy.safesearch.exclude = safeExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
                      placeholder="trusted-engine.com, other.com"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -261,8 +258,8 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.youtube.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">YouTube Channel Filter</div>
-                <div class="text-xs text-gray-500">Block or allow specific YouTube channels</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.youtube">YouTube Channel Filter</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.youtubeDesc">Block or allow specific YouTube channels</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.yt ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -271,33 +268,33 @@
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.youtube.mode" value="blacklist" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Blacklist (block listed channels)</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.ytBlacklist">Blacklist (block listed channels)</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.youtube.mode" value="whitelist" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Whitelist (only allow listed channels)</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.ytWhitelist">Whitelist (only allow listed channels)</span>
               </label>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Channels <span class="text-gray-400">(one per line — channel ID, @handle, or display name)</span></label>
+              <label class="text-xs font-medium text-gray-700 block mb-1"><span data-i18n="ed.channels">Channels</span> <span class="text-gray-400" data-i18n="ed.channelsNote">(one per line — channel ID, @handle, or display name)</span></label>
               <textarea x-model="ytChannelsText" @input="policy.youtube.channels = ytChannelsText.split('\n').map(s=>s.trim()).filter(Boolean)"
                         rows="5" placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx&#10;@MrBeast&#10;Some Channel Name"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
-              <p class="text-xs text-gray-400 mt-1">Requires MITM active for youtube.com. Accepts channel IDs (UC…), @handles, or display names (case-insensitive). Name/handle matching depends on what YouTube returns; channel ID is the most reliable. Blocks the video, the watch page, and the channel page.</p>
+              <p class="text-xs text-gray-400 mt-1" data-i18n="ed.ytHelp">Requires MITM active for youtube.com. Accepts channel IDs (UC…), @handles, or display names (case-insensitive). Name/handle matching depends on what YouTube returns; channel ID is the most reliable. Blocks the video, the watch page, and the channel page.</p>
             </div>
             <label x-show="policy.youtube.mode === 'whitelist'" class="flex items-center gap-3 cursor-pointer pt-1">
               <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="policy.youtube.block_home" />
-              <span class="text-sm text-gray-700">Block the YouTube home page &amp; feeds <span class="text-gray-400">(only listed channels reachable)</span></span>
+              <span class="text-sm text-gray-700"><span data-i18n="ed.ytBlockHome">Block the YouTube home page &amp; feeds</span> <span class="text-gray-400" data-i18n="ed.ytBlockHomeNote">(only listed channels reachable)</span></span>
             </label>
             <div class="border-t border-gray-100 pt-3 space-y-2">
-              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Watch page cleanup</div>
+              <div class="text-xs font-medium text-gray-500 uppercase tracking-wide" data-i18n="ed.watchCleanup">Watch page cleanup</div>
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="policy.youtube.remove_comments" />
-                <span class="text-sm text-gray-700">Remove comments</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.removeComments">Remove comments</span>
               </label>
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="policy.youtube.remove_recommendations" />
-                <span class="text-sm text-gray-700">Remove recommended-video sidebar</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.removeRecs">Remove recommended-video sidebar</span>
               </label>
             </div>
           </div>
@@ -309,8 +306,8 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.text_classifier.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">Adult Text Classifier</div>
-                <div class="text-xs text-gray-500">Detect and block pages with adult text content</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.textClf">Adult Text Classifier</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.textClfDesc">Detect and block pages with adult text content</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.text ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -318,16 +315,16 @@
           <div x-show="open.text" class="px-6 pb-5 border-t border-gray-100 pt-4 space-y-3">
             <div>
               <label class="text-xs font-medium text-gray-700 block mb-1">
-                Threshold: <span class="font-mono" x-text="policy.text_classifier.threshold"></span>
+                <span data-i18n="ed.threshold">Threshold:</span> <span class="font-mono" x-text="policy.text_classifier.threshold"></span>
               </label>
               <input type="range" min="0.5" max="1" step="0.05" x-model="policy.text_classifier.threshold"
                      class="w-full accent-blue-600" />
               <div class="flex justify-between text-xs text-gray-400 mt-1">
-                <span>More sensitive (0.5)</span><span>More precise (1.0)</span>
+                <span data-i18n="ed.moreSensitive">More sensitive (0.5)</span><span data-i18n="ed.morePrecise">More precise (1.0)</span>
               </div>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
               <input x-model="textExcludeText" @input="policy.text_classifier.exclude = textExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
                      placeholder="medical-site.com, biology-class.edu"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -341,8 +338,8 @@
             <div class="flex items-center gap-3">
               <input type="checkbox" class="toggle" x-model="policy.image_classifier.enabled" @click.stop />
               <div>
-                <div class="text-sm font-semibold text-gray-900">Image Classifier (NSFW)</div>
-                <div class="text-xs text-gray-500">Detect adult images and blur or block them</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.imgClf">Image Classifier (NSFW)</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.imgClfDesc">Detect adult images and blur or block them</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.img ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -351,35 +348,35 @@
             <div class="flex flex-wrap gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.image_classifier.action" value="blur" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Blur entire image</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.blurImage">Blur entire image</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.image_classifier.action" value="checkerboard" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Checkerboard placeholder</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.checkerboard">Checkerboard placeholder</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.image_classifier.action" value="block" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Replace with blank image</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.replaceBlank">Replace with blank image</span>
               </label>
             </div>
             <div>
               <label class="text-xs font-medium text-gray-700 block mb-1">
-                Detection Threshold: <span class="font-mono" x-text="policy.image_classifier.threshold"></span>
+                <span data-i18n="ed.detThreshold">Detection Threshold:</span> <span class="font-mono" x-text="policy.image_classifier.threshold"></span>
               </label>
               <input type="range" min="0.15" max="0.9" step="0.05" x-model.number="policy.image_classifier.threshold"
                      class="w-full accent-blue-600" />
               <div class="flex justify-between text-xs text-gray-400 mt-1">
-                <span>Catch more (0.15)</span><span>Fewer false positives (0.9)</span>
+                <span data-i18n="ed.catchMore">Catch more (0.15)</span><span data-i18n="ed.fewerFp">Fewer false positives (0.9)</span>
               </div>
-              <p class="text-xs text-gray-400 mt-1">~0.4 recommended. Thumbnails often score low; higher values miss them.</p>
+              <p class="text-xs text-gray-400 mt-1" data-i18n="ed.imgRecommend">~0.4 recommended. Thumbnails often score low; higher values miss them.</p>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Exclude Sites</label>
+              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
               <input x-model="imgExcludeText" @input="policy.image_classifier.exclude = imgExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
                      placeholder="art-museum.org, medical.edu"
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
-            <p class="text-xs text-gray-400">Requires MITM active for the site. NudeNet model downloads ~90 MB on first use.</p>
+            <p class="text-xs text-gray-400" data-i18n="ed.imgRequiresMitm">Requires MITM active for the site. NudeNet model downloads ~90 MB on first use.</p>
           </div>
         </div>
 
@@ -389,8 +386,8 @@
             <div class="flex items-center gap-3">
               <div class="w-9 h-5"></div><!-- spacer for toggle alignment -->
               <div>
-                <div class="text-sm font-semibold text-gray-900">MITM Control</div>
-                <div class="text-xs text-gray-500">Control which sites and clients are filtered</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.mitm">MITM Control</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.mitmDesc">Control which sites and clients are filtered</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.mitm ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -399,15 +396,15 @@
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.mitm.mode" value="exclude" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Exclude (MITM all except listed sites)</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.mitmExclude">Exclude (MITM all except listed sites)</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" x-model="policy.mitm.mode" value="include" class="text-blue-600" />
-                <span class="text-sm text-gray-700">Include (only MITM listed sites)</span>
+                <span class="text-sm text-gray-700" data-i18n="ed.mitmInclude">Include (only MITM listed sites)</span>
               </label>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1">Sites <span class="text-gray-400">(one per line)</span></label>
+              <label class="text-xs font-medium text-gray-700 block mb-1"><span data-i18n="ed.sites">Sites</span> <span class="text-gray-400" data-i18n="ed.onePerLine">(one per line)</span></label>
               <textarea x-model="mitmSitesText" @input="policy.mitm.sites = mitmSitesText.split('\n').map(s=>s.trim()).filter(Boolean)"
                         rows="4" placeholder="mybank.com&#10;health-portal.com"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
@@ -415,25 +412,25 @@
 
             <div class="border-t border-gray-100 pt-3 space-y-3">
               <div>
-                <div class="text-sm font-medium text-gray-800">User-Agent rules</div>
-                <div class="text-xs text-gray-500">Skip filtering for matching clients (e.g. native apps, devices). Matched as case-insensitive substrings. Cannot bypass TLS interception &mdash; only skips content filtering.</div>
+                <div class="text-sm font-medium text-gray-800" data-i18n="ed.uaRules">User-Agent rules</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.uaRulesDesc">Skip filtering for matching clients (e.g. native apps, devices). Matched as case-insensitive substrings. Cannot bypass TLS interception &mdash; only skips content filtering.</div>
               </div>
               <div class="flex gap-4 flex-wrap">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" x-model="policy.mitm.ua_mode" value="off" class="text-blue-600" />
-                  <span class="text-sm text-gray-700">Off</span>
+                  <span class="text-sm text-gray-700" data-i18n="ed.uaOff">Off</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" x-model="policy.mitm.ua_mode" value="exclude" class="text-blue-600" />
-                  <span class="text-sm text-gray-700">Exclude (don't filter listed user-agents)</span>
+                  <span class="text-sm text-gray-700" data-i18n="ed.uaExclude">Exclude (don't filter listed user-agents)</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" x-model="policy.mitm.ua_mode" value="include" class="text-blue-600" />
-                  <span class="text-sm text-gray-700">Include (only filter listed user-agents)</span>
+                  <span class="text-sm text-gray-700" data-i18n="ed.uaInclude">Include (only filter listed user-agents)</span>
                 </label>
               </div>
               <div x-show="policy.mitm.ua_mode !== 'off'">
-                <label class="text-xs font-medium text-gray-700 block mb-1">User-Agents <span class="text-gray-400">(one per line)</span></label>
+                <label class="text-xs font-medium text-gray-700 block mb-1"><span data-i18n="ed.userAgents">User-Agents</span> <span class="text-gray-400" data-i18n="ed.onePerLine">(one per line)</span></label>
                 <textarea x-model="mitmUserAgentsText" @input="policy.mitm.user_agents = mitmUserAgentsText.split('\n').map(s=>s.trim()).filter(Boolean)"
                           rows="3" placeholder="Spotify&#10;Roku&#10;CFNetwork"
                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
@@ -448,24 +445,24 @@
             <div class="flex items-center gap-3">
               <div class="w-9 h-5"></div>
               <div>
-                <div class="text-sm font-semibold text-gray-900">Block Page</div>
-                <div class="text-xs text-gray-500">Customize the message shown when content is blocked</div>
+                <div class="text-sm font-semibold text-gray-900" data-i18n="ed.blockPage">Block Page</div>
+                <div class="text-xs text-gray-500" data-i18n="ed.blockPageDesc">Customize the message shown when content is blocked</div>
               </div>
             </div>
             <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open.bp ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
           <div x-show="open.bp" class="px-6 pb-5 border-t border-gray-100 pt-4">
-            <label class="text-xs font-medium text-gray-700 block mb-1">Custom Message</label>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.customMessage">Custom Message</label>
             <textarea x-model="policy.block_page.message" rows="3"
-                      placeholder="This content has been blocked by your network policy."
+                      data-i18n-ph="ed.customMessagePh" placeholder="This content has been blocked by your network policy."
                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
           </div>
         </div>
 
         <!-- Bottom save bar -->
         <div class="flex justify-end gap-3 mt-2 mb-8">
-          <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</a>
-          <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Save Policy</button>
+          <a href="index.html" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" data-i18n="common.cancel">Cancel</a>
+          <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="ed.savePolicy">Save Policy</button>
         </div>
       </div>
     </main>
@@ -526,7 +523,7 @@
           this.ipInput = '';
           if (!v) return;
           if (!isValidIpOrCidr(v)) {
-            this.ipError = `"${v}" is not a valid IP address or CIDR range`;
+            this.ipError = window.wfT('ed.ipInvalid').replace('{v}', v);
             return;
           }
           this.ipError = '';
@@ -553,7 +550,7 @@
                 this.policy.mitm.user_agents = this.policy.mitm.user_agents || [];
                 this._syncTextAreas();
               }
-            } catch (e) { this.showAlert('Failed to load policy', 'error'); }
+            } catch (e) { this.showAlert(window.wfT('ed.failLoad'), 'error'); }
           }
         },
 
@@ -578,7 +575,7 @@
           }
 
           if (!this.policy.name.trim()) {
-            this.showAlert('Policy name is required', 'error'); return;
+            this.showAlert(window.wfT('ed.nameRequired'), 'error'); return;
           }
 
           // Trim stray whitespace from the DOH URL (common on paste).
@@ -596,14 +593,14 @@
               body: JSON.stringify(this.policy),
             });
             if (res.ok) {
-              this.showAlert('Policy saved successfully', 'success');
+              this.showAlert(window.wfT('ed.savedOk'), 'success');
               setTimeout(() => { location.href = 'index.html'; }, 800);
             } else {
               const err = await res.json();
-              this.showAlert(err.detail || 'Save failed', 'error');
+              this.showAlert(err.detail || window.wfT('ed.saveFailed'), 'error');
             }
           } catch (e) {
-            this.showAlert('Network error: ' + e.message, 'error');
+            this.showAlert(window.wfT('ed.netErr') + e.message, 'error');
           }
         },
 
