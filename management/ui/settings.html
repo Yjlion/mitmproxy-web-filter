@@ -63,15 +63,11 @@
     </aside>
 
     <main class="flex-1 overflow-auto">
-      <div class="px-8 py-6 max-w-2xl mx-auto">
+      <div class="px-8 pt-6 pb-24 max-w-2xl mx-auto">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900" data-i18n="set.title">Settings</h1>
           <p class="text-sm text-gray-500 mt-1" data-i18n="set.subtitle">Global proxy configuration</p>
         </div>
-
-        <div x-show="alert" x-cloak class="mb-4 px-4 py-3 rounded-lg text-sm"
-             :class="alertType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'"
-             x-text="alert"></div>
 
         <!-- Interface language -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-3 mb-4">
@@ -152,9 +148,6 @@
                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
-          <div class="pt-1">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
-          </div>
         </div>
 
         <!-- Management bind -->
@@ -215,9 +208,6 @@
             </div>
             <p class="text-xs text-gray-400 mt-1" data-i18n="set.directHelp">These bypass the proxy entirely. Subdomains are included automatically. Localhost and private IP ranges are always direct.</p>
           </div>
-          <div class="pt-1">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
-          </div>
         </div>
 
         <!-- Directories & logging -->
@@ -262,10 +252,6 @@
                    class="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <p class="text-xs text-gray-400 mt-1" data-i18n="set.logRetentionHelp">Rows older than this many days are pruned automatically. Set 0 to keep everything.</p>
           </div>
-          <div class="pt-2">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
-            <p class="text-xs text-gray-400 mt-2" data-i18n="set.restartNote">Restart the proxy after changing listen addresses, ports, or the certificate directory.</p>
-          </div>
         </div>
 
         <!-- Authentication -->
@@ -287,9 +273,6 @@
                    :placeholder="settings.has_password ? $t('set.pwKeepPh') : $t('set.pwEnterPh')"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <p class="text-xs text-gray-400 mt-1" data-i18n="set.pwHelp">Stored salted + hashed (PBKDF2). Put the UI behind HTTPS/VPN if exposed beyond a trusted network.</p>
-          </div>
-          <div class="pt-1">
-            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
           </div>
         </div>
 
@@ -318,6 +301,17 @@
               </label>
             </div>
             <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-3" data-i18n="set.caImportNote">Importing replaces this instance's CA with the uploaded mitmproxy-ca.pem. Restart the proxy afterwards for it to take effect.</p>
+          </div>
+        </div>
+
+        <!-- Single save bar — every section above writes the whole settings object -->
+        <div class="sticky bottom-0 -mx-8 mt-6 px-8 py-3 bg-white/95 backdrop-blur border-t border-gray-200">
+          <div x-show="alert" x-cloak class="mb-2 px-3 py-2 rounded-lg text-sm"
+               :class="alertType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'"
+               x-text="alert"></div>
+          <div class="flex items-center gap-4">
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
+            <p class="text-xs text-gray-400" data-i18n="set.restartNote">Restart the proxy after changing listen addresses, ports, or the certificate directory.</p>
           </div>
         </div>
       </div>
