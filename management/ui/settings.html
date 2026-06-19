@@ -5,16 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title data-i18n="doc.settings">Settings — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="theme.css" />
+  <script src="chrome.js"></script>
   <script src="i18n.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="bg-gray-100 min-h-screen" x-data="settingsPage()" x-init="init()">
+<body class="bg-canvas min-h-screen" x-data="settingsPage()" x-init="init()">
 
   <div class="flex h-screen overflow-hidden">
-    <aside class="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0">
-      <div class="px-6 py-5 border-b border-gray-700">
+    <aside class="wf-sidebar w-56 bg-sidebar text-sidebar-ink flex flex-col flex-shrink-0">
+      <div class="px-6 py-5 border-b border-sidebar-border">
         <div class="flex items-center gap-2">
           <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -24,38 +26,38 @@
         </div>
       </div>
       <nav class="flex-1 px-3 py-4 space-y-1">
-        <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+        <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-muted hover:bg-sidebar-active hover:text-sidebar-ink text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           <span data-i18n="nav.dashboard">Dashboard</span>
         </a>
-        <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+        <a href="policies.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-muted hover:bg-sidebar-active hover:text-sidebar-ink text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
           <span data-i18n="nav.policies">Policies</span>
         </a>
-        <a href="logs.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+        <a href="logs.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-muted hover:bg-sidebar-active hover:text-sidebar-ink text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           <span data-i18n="nav.logs">Logs</span>
         </a>
-        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white text-sm transition-colors">
+        <a href="analytics.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-muted hover:bg-sidebar-active hover:text-sidebar-ink text-sm transition-colors">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           <span data-i18n="nav.analytics">Analytics</span>
         </a>
-        <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium">
+        <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-active text-sidebar-ink text-sm font-medium">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span data-i18n="nav.settings">Settings</span>
         </a>
       </nav>
-      <div class="px-3 py-4 border-t border-gray-700 space-y-2">
+      <div class="px-3 py-4 border-t border-sidebar-border space-y-2">
         <label class="block px-3">
-          <span class="text-xs text-gray-500" data-i18n="lang.label">Language</span>
-          <select class="wf-lang-select mt-1 w-full bg-gray-800 text-gray-200 text-xs rounded px-2 py-1 border border-gray-700 focus:outline-none"></select>
+          <span class="text-xs text-sidebar-muted" data-i18n="lang.label">Language</span>
+          <select class="wf-lang-select mt-1 w-full bg-sidebar-active text-sidebar-ink text-xs rounded px-2 py-1 border border-sidebar-border focus:outline-none"></select>
         </label>
-        <a href="/api/ca-cert" class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2">
+        <a href="/api/ca-cert" class="flex items-center gap-2 text-xs text-sidebar-muted hover:text-sidebar-ink transition-colors px-3 py-2">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
           <span data-i18n="nav.downloadCert">Download CA Cert</span>
         </a>
         <button x-show="settings.auth_enabled && settings.has_password" x-cloak @click="logout()"
-                class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2 w-full">
+                class="flex items-center gap-2 text-xs text-sidebar-muted hover:text-sidebar-ink transition-colors px-3 py-2 w-full">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           <span data-i18n="nav.signOut">Sign out</span>
         </button>
@@ -70,7 +72,7 @@
         </div>
 
         <!-- Interface language -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-3 mb-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-3 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.language">Interface Language</h2>
             <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.languageDesc">Language for this management interface and the block page shown to filtered clients.</p>
@@ -79,7 +81,7 @@
         </div>
 
         <!-- Proxy bind -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.proxyListen">Proxy Listen Addresses</h2>
             <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.proxyListenDesc">Where the filtering proxy accepts connections. Add multiple to bind several addresses/ports.</p>
@@ -88,7 +90,7 @@
             <template x-for="(addr, i) in settings.proxy_listen" :key="i">
               <div class="flex items-center gap-2">
                 <select :value="listenMode(addr)" @change="setListenMode(i, $event.target.value)"
-                        class="border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        class="border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-card">
                   <option value="regular">HTTP Proxy</option>
                   <option value="socks5">SOCKS5</option>
                   <option value="wireguard">WireGuard</option>
@@ -111,7 +113,7 @@
         </div>
 
         <!-- WireGuard panel -->
-        <div x-show="wg.enabled" x-cloak class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+        <div x-show="wg.enabled" x-cloak class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.wireguard">WireGuard</h2>
             <p class="text-xs text-gray-500 mt-0.5">Endpoint: <span class="font-mono" x-text="wg.endpoint"></span></p>
@@ -131,7 +133,7 @@
         </div>
 
         <!-- Upstream Proxy -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900">Upstream Proxy</h2>
             <p class="text-xs text-gray-500 mt-0.5">When set, all regular-mode listeners forward through this parent proxy. Restart the proxy after changing.</p>
@@ -151,7 +153,7 @@
         </div>
 
         <!-- Management bind -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.mgmtServer">Management Server</h2>
             <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.mgmtServerDesc">Bind for this admin interface — independent of the proxy listen settings.</p>
@@ -172,7 +174,7 @@
         </div>
 
         <!-- Proxy auto-config (PAC / WPAD) -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.pac">Proxy Auto-Config (PAC / WPAD)</h2>
             <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.pacDesc">Point client devices at one of these URLs (Settings → Automatic proxy configuration), or set wpad via DHCP/DNS for auto-discovery.</p>
@@ -211,7 +213,7 @@
         </div>
 
         <!-- Directories & logging -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.certDir">Certificate Directory</label>
@@ -255,7 +257,7 @@
         </div>
 
         <!-- Authentication -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4">
           <div>
             <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.auth">Authentication</h2>
             <p class="text-xs text-gray-500 mt-0.5" data-i18n="set.authDesc">Require a password to open this management interface.</p>
@@ -276,12 +278,12 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-4 space-y-5">
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 mt-4 space-y-5">
           <div>
             <h2 class="text-sm font-semibold text-gray-900 mb-1" data-i18n="set.caCert">CA Certificate</h2>
             <p class="text-sm text-gray-600" data-i18n="set.caCertDesc">Install this certificate on client devices to enable HTTPS inspection.</p>
           </div>
-          <a href="/api/ca-cert" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900">
+          <a href="/api/ca-cert" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sidebar rounded-lg hover:bg-sidebar-active">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span data-i18n="set.downloadCaCert">Download CA Certificate</span>
           </a>
@@ -305,7 +307,7 @@
         </div>
 
         <!-- Single save bar — every section above writes the whole settings object -->
-        <div class="sticky bottom-0 -mx-8 mt-6 px-8 py-3 bg-white/95 backdrop-blur border-t border-gray-200">
+        <div class="sticky bottom-0 -mx-8 mt-6 px-8 py-3 bg-card/95 backdrop-blur border-t border-gray-200">
           <div x-show="alert" x-cloak class="mb-2 px-3 py-2 rounded-lg text-sm"
                :class="alertType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'"
                x-text="alert"></div>
