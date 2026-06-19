@@ -37,8 +37,15 @@ Download the archive for your OS from [Releases](../../releases), extract, and r
 no Python install required:
 
 ```bash
-# Linux
+# Linux (Intel/AMD 64-bit)
 tar xzf web-filter-proxy-linux-x86_64.tar.gz
+cd web-filter-proxy
+./start.sh
+```
+
+```bash
+# Raspberry Pi / ARM (64-bit OS)
+tar xzf web-filter-proxy-linux-aarch64.tar.gz
 cd web-filter-proxy
 ./start.sh
 ```
@@ -47,6 +54,11 @@ cd web-filter-proxy
 :: Windows — extract the .zip, then
 start.bat
 ```
+
+Available archives: `linux-x86_64` (Intel/AMD), `linux-aarch64` (Raspberry Pi 3/4/5
+and Zero 2 W running a **64-bit** OS, plus ARM servers), and `windows-x86_64`. The
+ARM archive requires 64-bit Raspberry Pi OS / Ubuntu — 32-bit (armhf) is not
+supported. Re-flash with the 64-bit OS to run on a Pi.
 
 Then:
 1. Open the management UI at **http://localhost:8000**.
@@ -79,7 +91,9 @@ A single container runs both the filtering proxy (port 8080) and the management 
 ### Run the published image (GitHub Container Registry)
 
 Images are pushed to GHCR on every release tag — `:latest`, `:0.4` (major.minor),
-and `:0.4.0` (exact version):
+and `:0.4.0` (exact version). Each tag is a multi-arch manifest covering
+**`linux/amd64`** and **`linux/arm64`**, so the same `docker run` works on a
+64-bit Raspberry Pi — Docker pulls the matching architecture automatically:
 
 ```bash
 docker run -d --name webfilter-proxy \
