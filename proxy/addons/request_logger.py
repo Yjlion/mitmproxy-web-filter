@@ -5,7 +5,7 @@ the final action set by upstream filters (blocked / modified / ok).
 from __future__ import annotations
 import time
 from mitmproxy import http
-from proxy.request_log import log_request
+from shared.logstore import log_request
 
 
 class RequestLogger:

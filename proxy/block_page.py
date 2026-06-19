@@ -1,14 +1,15 @@
 from __future__ import annotations
 import json
+import sys
 import time
 from pathlib import Path
 from mitmproxy import http
 from jinja2 import Environment, FileSystemLoader
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 _template_dir = Path(__file__).parent
 _env = Environment(loader=FileSystemLoader(str(_template_dir)), autoescape=True)
-
-_blocks_log: Path | None = None
 
 # Project root → config/settings.json (holds the shared ui_language).
 _SETTINGS_PATH = Path(__file__).parent.parent / "config" / "settings.json"
@@ -47,28 +48,20 @@ def _bp_labels(lang: str) -> dict:
     return {k: table.get(k, base[k]) for k in base}
 
 
-def init_logging(path: str) -> None:
-    global _blocks_log
-    _blocks_log = Path(path)
-    _blocks_log.parent.mkdir(parents=True, exist_ok=True)
-
-
 def log_block(
     flow: http.HTTPFlow,
     reason: str,
     component: str,
     policy=None,
 ) -> None:
-    """Append a block event to the block log. Used both by the HTML block page
-    and by components that block without returning the HTML page (e.g. the
-    YouTube player API, which gets a JSON response instead)."""
+    """Record a block event. Used both by the HTML block page and by components
+    that block without returning the HTML page (e.g. the YouTube player API,
+    which gets a JSON response instead)."""
     # Mark the flow so the request logger records this as a block (independent
-    # of whether the blocks-log file is enabled).
+    # of whether block logging is enabled).
     flow.metadata["wf_action"] = "blocked"
     flow.metadata["wf_component"] = component
 
-    if not _blocks_log:
-        return
     policy_name = policy.name if policy else "unknown"
     entry = {
         "ts": int(time.time()),
@@ -77,12 +70,16 @@ def log_block(
         "reason": reason,
         "component": component,
         "policy": policy_name,
-        "client_ip": flow.client_conn.peername[0] if flow.client_conn.peername else "",
+        "client_ip": (
+            flow.client_conn.peername[0]
+            if getattr(flow, "client_conn", None) and flow.client_conn.peername
+            else ""
+        ),
     }
     try:
-        with _blocks_log.open("a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except OSError:
+        from shared.logstore import log_block as _ls_log_block
+        _ls_log_block(entry)
+    except Exception:
         pass
 
 

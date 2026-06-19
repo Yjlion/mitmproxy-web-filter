@@ -120,13 +120,17 @@ class PolicyRouter:
         except Exception:
             pass
 
-        from proxy.block_page import init_logging
-        if _settings.log_blocks:
-            init_logging(_settings.blocks_log_path)
-
-        from proxy.request_log import init as init_request_log
-        if _settings.log_requests:
-            init_request_log(_settings.request_log_path, _settings.request_log_max)
+        if _settings.log_blocks or _settings.log_requests:
+            from shared import logstore
+            logstore.configure(
+                _settings.db_path,
+                _settings.log_retention_days,
+                log_requests=_settings.log_requests,
+                log_blocks=_settings.log_blocks,
+            )
+            logstore.migrate_legacy(
+                _project_root / _settings.logs_dir.lstrip("./\\")
+            )
 
     def running(self):
         global _policies, _settings

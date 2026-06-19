@@ -238,7 +238,7 @@
             <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.logsDir">Logs Directory</label>
             <input type="text" x-model="settings.logs_dir" placeholder="./logs"
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <p class="text-xs text-gray-400 mt-1" data-i18n="set.logsHelp">Holds blocks.jsonl and requests.jsonl.</p>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.logsHelp">Holds webfilter.db (SQLite) and any imported legacy JSONL files.</p>
           </div>
           <div>
             <label class="text-xs font-medium text-gray-700 block mb-1">Categories Directory</label>
@@ -255,6 +255,12 @@
               <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.log_requests" />
               <span class="text-sm text-gray-700" data-i18n="set.logRequests">Log all requests to file</span>
             </label>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.logRetention">Log retention (days)</label>
+            <input type="number" x-model.number="settings.log_retention_days" min="0" step="1"
+                   class="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.logRetentionHelp">Rows older than this many days are pruned automatically. Set 0 to keep everything.</p>
           </div>
           <div class="pt-2">
             <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
@@ -321,7 +327,7 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
         status: { proxy_port: null },
         newPassword: '',
         alert: '',

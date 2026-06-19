@@ -211,7 +211,7 @@ class GlobalSettings(BaseModel):
     logs_dir: str = "./logs"
     log_blocks: bool = True
     log_requests: bool = True
-    request_log_max: int = 2000
+    log_retention_days: int = 30
     default_policy: str | None = None
     # Management UI authentication. password_hash/secret_key are managed
     # server-side and never sent to the browser.
@@ -254,6 +254,10 @@ class GlobalSettings(BaseModel):
         return cleaned or ["0.0.0.0:8080"]
 
     # --- derived (not stored) -------------------------------------------------
+    @property
+    def db_path(self) -> str:
+        return str(Path(self.logs_dir) / "webfilter.db")
+
     @property
     def blocks_log_path(self) -> str:
         return str(Path(self.logs_dir) / "blocks.jsonl")
