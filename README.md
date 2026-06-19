@@ -100,7 +100,7 @@ docker run -d --name webfilter-proxy \
   -v "$PWD/policies:/app/policies" \
   -v "$PWD/logs:/app/logs" \
   -v "$PWD/models:/app/models" \
-  -v "$PWD/categories:/app/categories" \   # optional: mount to refresh lists without pulling a new image
+  -v "$PWD/categories:/app/categories" \   
   ghcr.io/yjlion/mitmproxy-web-filter:latest
 
 # Then refresh the lists on the host and they are live immediately:
@@ -118,10 +118,14 @@ per-source-IP policies cannot distinguish between clients. Use `--network host`
 so the proxy sees real client IPs:
 
 ```bash
-docker run -d --name webfilter-proxy --network host \
-  -v "$PWD/config:/app/config" -v "$PWD/certs:/app/certs" \
-  -v "$PWD/policies:/app/policies" -v "$PWD/logs:/app/logs" \
+docker run -d --name webfilter-proxy \
+  --network host \
+  -v "$PWD/config:/app/config" \
+  -v "$PWD/certs:/app/certs" \
+  -v "$PWD/policies:/app/policies" \
+  -v "$PWD/logs:/app/logs" \
   -v "$PWD/models:/app/models" \
+  -v "$PWD/categories:/app/categories" \   
   ghcr.io/yjlion/mitmproxy-web-filter:latest
 ```
 
