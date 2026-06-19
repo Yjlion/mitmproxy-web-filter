@@ -4,6 +4,11 @@ A mitmproxy-based web filtering proxy with per-source-IP policies and a web
 management UI. Each policy is a JSON file and is matched to clients by source IP
 (IPv4/IPv6, CIDR supported).
 
+> ⚠️ **Disclaimer:** This project is "vibe coded" — largely built with AI
+> assistance (Claude Code). Review and test it before relying on it; it
+> intercepts TLS and filters live network traffic. Provided **as-is with no
+> warranty**. See [DISCLAIMER.md](DISCLAIMER.md).
+
 ## Filtering components (per policy, individually toggleable)
 
 - **URL filter** — allow / block lists (exact, `*.wildcard`, URL globs) plus shared

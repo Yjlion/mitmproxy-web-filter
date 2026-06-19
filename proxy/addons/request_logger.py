@@ -31,4 +31,5 @@ class RequestLogger:
             "component": flow.metadata.get("wf_component", ""),
             "policy": policy.name if policy else "",
             "client_ip": flow.client_conn.peername[0] if flow.client_conn.peername else "",
+            "user_agent": flow.request.headers.get("user-agent", ""),
         })

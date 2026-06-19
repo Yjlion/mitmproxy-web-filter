@@ -304,7 +304,7 @@ Tests mock the mitmproxy flow object and addon context; no live proxy required.
 
 ## UI Development Notes
 
-The UI (`management/ui/`) requires no build step. Tailwind CSS and Alpine.js are loaded from CDN. To iterate on the UI:
+The UI (`management/ui/`) ships a pre-built `management/ui/tailwind.css` — no CDN dependency and no Node/npm toolchain required at runtime. Alpine.js is still loaded from CDN (jsdelivr). To iterate on the UI:
 
 ```bash
 # Start the API with auto-reload
@@ -313,6 +313,24 @@ The UI (`management/ui/`) requires no build step. Tailwind CSS and Alpine.js are
 ```
 
 Each HTML page is standalone; navigation is via `<a href>` links. Alpine.js `x-data` components handle API calls and reactive state.
+
+### Rebuilding tailwind.css
+
+If you add new Tailwind utility classes to any HTML file in `management/ui/`, regenerate the CSS with the Tailwind v3 standalone binary (no npm needed):
+
+```powershell
+# Windows
+scripts\build_tailwind.ps1
+```
+
+```bash
+# Linux / macOS
+bash scripts/build_tailwind.sh
+```
+
+Both scripts download the standalone binary on first run (cached at `$env:TEMP\tailwindcss-v3.exe` / `~/.cache/tailwindcss/`) and skip re-downloading on subsequent runs. The build sources are:
+- `management/ui/tailwind.config.js` — color palette config (mirrors the CSS variable map in `theme.css`)
+- `management/ui/tailwind.input.css` — `@tailwind` directives + `@layer components` rules (`.badge`, `.bar-track`, `.bar-fill`, `.section`, `.section-header`, `.tag`)
 
 ## Common Conventions
 

@@ -1,3 +1,6 @@
+# Local Claude Code workspace (settings, plans, memory) — never committed
+.claude/
+
 # Python runtime / deps (bundled only in release archives)
 .venv/
 runtime/

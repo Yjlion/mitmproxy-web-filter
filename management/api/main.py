@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 
 from management.api.routes import policies, settings as settings_router, certs
 from management.api.routes import wireguard as wireguard_router
+from management.api.routes import tools as tools_router
 from management.api import auth, pac
 from shared.models import GlobalSettings
 from shared.version import get_version
@@ -122,6 +123,7 @@ app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(settings_router.router, prefix="/api/settings", tags=["settings"])
 app.include_router(certs.router, prefix="/api/certs", tags=["certs"])
 app.include_router(wireguard_router.router, prefix="/api/wireguard", tags=["wireguard"])
+app.include_router(tools_router.router, prefix="/api/tools", tags=["tools"])
 
 
 @app.get("/api/status")

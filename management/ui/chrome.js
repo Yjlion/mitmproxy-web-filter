@@ -1,17 +1,18 @@
 /*
  * WebFilter management UI — theming + responsive shell. Build-free, no deps.
  *
- * Mirrors i18n.js: a single shared script loaded by every page (right after the
- * Tailwind CDN <script>, NOT deferred). Two jobs:
+ * Mirrors i18n.js: a single shared script loaded by every page (before Alpine,
+ * NOT deferred). Two jobs:
  *
- *   1. Remap Tailwind's `gray` and `blue` palettes — plus add `canvas`, `card`
- *      and `sidebar*` utilities — to the CSS variables in theme.css, so the
- *      existing utility classes theme with no markup change. `white` is left
- *      literal so text-white on buttons/sidebar stays light. Status colours
- *      (red/green/amber/yellow/orange/purple) are untouched.
- *   2. Resolve + apply the theme (data-theme / data-accent) before paint, build
+ *   1. Resolve + apply the theme (data-theme / data-accent) before paint, build
  *      the sidebar theme picker, and turn the duplicated sidebar into an
  *      off-canvas drawer on small screens.
+ *
+ * Color utilities (canvas, card, gray.*, blue.*, sidebar.*) are baked into
+ * management/ui/tailwind.css at build time — no CDN or runtime config needed.
+ * To regenerate tailwind.css after adding new Tailwind classes, run:
+ *   scripts/build_tailwind.ps1  (Windows)
+ *   scripts/build_tailwind.sh   (Linux / macOS)
  *
  * Preferences are per-browser (localStorage): wf_theme = auto|light|dark,
  * wf_accent = blue|emerald|violet|rose.
@@ -19,36 +20,7 @@
 (function () {
   "use strict";
 
-  // ── 1. Tailwind palette remap (must run before the CDN generates styles) ──
-  var v = function (name) { return "rgb(var(--wf-" + name + ") / <alpha-value>)"; };
-  window.tailwind = window.tailwind || {};
-  window.tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          canvas: v("canvas"),
-          card: v("card"),
-          gray: {
-            50: v("gray-50"), 100: v("gray-100"), 200: v("gray-200"),
-            300: v("gray-300"), 400: v("gray-400"), 500: v("gray-500"),
-            600: v("gray-600"), 700: v("gray-700"), 800: v("gray-800"),
-            900: v("gray-900"),
-          },
-          blue: {
-            50: v("accent-50"), 100: v("accent-100"), 400: v("accent-400"),
-            600: v("accent-600"), 700: v("accent-700"), 800: v("accent-800"),
-          },
-          sidebar: {
-            DEFAULT: v("sidebar"), ink: v("sidebar-ink"),
-            muted: v("sidebar-muted"), active: v("sidebar-active"),
-            border: v("sidebar-border"),
-          },
-        },
-      },
-    },
-  };
-
-  // ── 2. Theme state ──
+  // ── 1. Theme state ──
   var MODE_KEY = "wf_theme", ACCENT_KEY = "wf_accent";
   var MODES = ["auto", "light", "dark"];
   var ACCENTS = ["blue", "emerald", "violet", "rose"];
@@ -96,7 +68,7 @@
     apply(); syncPicker();
   }
 
-  // ── Theme picker (injected into the sidebar bottom, like i18n's selects) ──
+  // ── 2. Theme picker (injected into the sidebar bottom, like i18n's selects) ──
   var MODE_ICON = {
     auto: '<span class="text-[10px] font-semibold">A</span>',
     light: '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
@@ -166,7 +138,7 @@
     });
   }
 
-  // ── Mobile drawer: turn the duplicated sidebar into an off-canvas panel ──
+  // ── 3. Mobile drawer: turn the duplicated sidebar into an off-canvas panel ──
   function buildMobileNav() {
     var aside = document.querySelector("aside");
     var main = document.querySelector("main");

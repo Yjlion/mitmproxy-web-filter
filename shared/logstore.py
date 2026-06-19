@@ -23,7 +23,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 REQUEST_COLUMNS = (
     "ts", "method", "host", "path", "status",
-    "action", "component", "policy", "client_ip",
+    "action", "component", "policy", "client_ip", "user_agent",
 )
 BLOCK_COLUMNS = (
     "ts", "domain", "url", "reason",
@@ -50,16 +50,17 @@ _PRUNE_EVERY = 500
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS requests (
-  id        INTEGER PRIMARY KEY AUTOINCREMENT,
-  ts        INTEGER NOT NULL,
-  method    TEXT,
-  host      TEXT,
-  path      TEXT,
-  status    INTEGER,
-  action    TEXT,
-  component TEXT,
-  policy    TEXT,
-  client_ip TEXT
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts         INTEGER NOT NULL,
+  method     TEXT,
+  host       TEXT,
+  path       TEXT,
+  status     INTEGER,
+  action     TEXT,
+  component  TEXT,
+  policy     TEXT,
+  client_ip  TEXT,
+  user_agent TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_requests_ts ON requests(ts);
 
@@ -104,6 +105,14 @@ def configure(
                 pass
         _conn = _open_write_conn(db_path)
         _conn.executescript(_DDL)
+        # Schema migration: add user_agent column if it is missing (introduced
+        # after initial deployment so existing databases lack it).
+        existing_cols = {
+            row[1]
+            for row in _conn.execute("PRAGMA table_info(requests)").fetchall()
+        }
+        if "user_agent" not in existing_cols:
+            _conn.execute("ALTER TABLE requests ADD COLUMN user_agent TEXT")
         _conn.commit()
 
     prune()

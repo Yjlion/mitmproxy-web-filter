@@ -310,3 +310,107 @@ class TestMigrateLegacy:
         )
         ls.migrate_legacy(tmp_path)
         assert ls.tail("requests", 10)[0]["host"] == "bom.com"
+
+
+# ---------------------------------------------------------------------------
+# Tests: user_agent column (A4)
+# ---------------------------------------------------------------------------
+
+class TestUserAgentColumn:
+    def test_user_agent_round_trips(self, tmp_path):
+        """user_agent written via log_request must appear in tail()."""
+        _reset(str(tmp_path / "wf.db"))
+        ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TestBrowser/1.0"
+        ls.log_request({
+            "ts": 1_000_000,
+            "method": "GET",
+            "host": "example.com",
+            "path": "/",
+            "status": 200,
+            "action": "ok",
+            "component": "",
+            "policy": "default",
+            "client_ip": "10.0.0.1",
+            "user_agent": ua,
+        })
+        rows = ls.tail("requests", 10)
+        assert len(rows) == 1
+        assert rows[0]["user_agent"] == ua
+
+    def test_migration_adds_user_agent_column(self, tmp_path):
+        """configure() on a DB whose requests table lacks user_agent must add it.
+
+        Steps:
+          1. Create the table WITHOUT user_agent (simulating a pre-migration DB).
+          2. Call configure() — this must run the ALTER TABLE migration.
+          3. Assert the column exists and a row with user_agent can be inserted
+             and read back.
+        """
+        import sqlite3
+
+        db = str(tmp_path / "wf.db")
+
+        # Step 1: Create the old-schema table (no user_agent column).
+        conn = sqlite3.connect(db)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS requests (
+              id        INTEGER PRIMARY KEY AUTOINCREMENT,
+              ts        INTEGER NOT NULL,
+              method    TEXT,
+              host      TEXT,
+              path      TEXT,
+              status    INTEGER,
+              action    TEXT,
+              component TEXT,
+              policy    TEXT,
+              client_ip TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS blocks (
+              id        INTEGER PRIMARY KEY AUTOINCREMENT,
+              ts        INTEGER NOT NULL,
+              domain    TEXT,
+              url       TEXT,
+              reason    TEXT,
+              component TEXT,
+              policy    TEXT,
+              client_ip TEXT
+            )
+        """)
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.commit()
+        conn.close()
+
+        # Step 2: configure() must run the migration.
+        if ls._conn is not None:
+            try:
+                ls._conn.close()
+            except Exception:
+                pass
+            ls._conn = None
+        ls._db_path = None
+        ls._insert_count = 0
+        ls.configure(db, retention_days=0)
+
+        # Step 3a: Verify the column exists via PRAGMA.
+        read_conn = ls._open_read_conn(db)
+        cols = {row[1] for row in read_conn.execute("PRAGMA table_info(requests)").fetchall()}
+        read_conn.close()
+        assert "user_agent" in cols
+
+        # Step 3b: Insert a row with user_agent and read it back.
+        ls.log_request({
+            "ts": 9_000_000,
+            "method": "GET",
+            "host": "migrated.example.com",
+            "path": "/",
+            "status": 200,
+            "action": "ok",
+            "component": "",
+            "policy": "p",
+            "client_ip": "192.168.1.1",
+            "user_agent": "MigrationTestAgent/1.0",
+        })
+        rows = ls.tail("requests", 10)
+        assert any(r.get("user_agent") == "MigrationTestAgent/1.0" for r in rows)
