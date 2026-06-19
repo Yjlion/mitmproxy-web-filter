@@ -65,6 +65,44 @@ Run the tests:
 .venv/bin/pytest tests/ -v
 ```
 
+## Docker
+
+A single container runs both the filtering proxy (port 8080) and the management UI
+(port 8000). State lives in mounted volumes (`config/`, `certs/`, `policies/`,
+`logs/`, `models/`) so it survives image upgrades.
+
+### Run the published image (GitHub Container Registry)
+
+Images are pushed to GHCR on every release tag — `:latest`, `:0.4` (major.minor),
+and `:0.4.0` (exact version):
+
+```bash
+docker run -d --name webfilter-proxy \
+  -p 8080:8080 -p 8000:8000 \
+  -v "$PWD/config:/app/config" \
+  -v "$PWD/certs:/app/certs" \
+  -v "$PWD/policies:/app/policies" \
+  -v "$PWD/logs:/app/logs" \
+  -v "$PWD/models:/app/models" \
+  ghcr.io/yjlion/mitmproxy-web-filter:latest
+```
+
+### Build locally with Docker Compose
+
+```bash
+docker compose up -d        # build the image + start in the background
+docker compose logs -f      # follow logs
+docker compose down         # stop
+```
+
+Then open the management UI at **http://localhost:8000**, point each device's proxy
+at **`<host>:8080`** (or use `http://<host>:8000/proxy.pac`), and install the CA
+certificate from **Settings → CA Certificate**.
+
+> Note: the image ships without the shared site-category blocklists (they are large
+> and updated out-of-band). To use category filtering in a container, mount a
+> populated `categories/` directory at `/app/categories`.
+
 ## Configuration
 
 - `config/settings.json` — global config (proxy listen addresses, management host/port,
@@ -89,4 +127,5 @@ See [CLAUDE.md](CLAUDE.md) for architecture details.
 
 Pushing a `v*` tag (or running the **build-archives** workflow manually) builds
 self-contained archives for Linux and Windows with a relocatable Python runtime and all
-dependencies included.
+dependencies included, and publishes the Docker image to
+`ghcr.io/yjlion/mitmproxy-web-filter` (see [Docker](#docker)).

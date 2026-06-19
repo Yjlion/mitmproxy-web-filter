@@ -18,9 +18,42 @@ def split_hostport(entry: str) -> tuple[str, int]:
     return host, (int(port) if port.isdigit() else 0)
 
 
+# mitmproxy mode names recognized in proxy_listen entries. A bare "host:port"
+# entry (no recognized prefix) defaults to regular HTTP proxy mode.
+KNOWN_PROXY_MODES = (
+    "regular", "transparent", "socks5", "upstream", "reverse",
+    "wireguard", "dns", "tun", "local",
+)
+
+# Modes that act as an HTTP/SOCKS proxy clients point at (eligible for the PAC port).
+_PROXY_PORT_MODES = ("regular", "socks5")
+
+
+def parse_listen(entry: str) -> tuple[str, str, int]:
+    """Parse a proxy_listen entry into (mode, host, port). A bare 'host:port'
+    (or IPv6 form) with no recognized mode prefix is treated as regular mode.
+    Mode-prefixed specs look like 'socks5@0.0.0.0:1080', 'wireguard@0.0.0.0:51820',
+    'dns@0.0.0.0:53', or bare 'tun' / 'local' (no host:port)."""
+    entry = entry.strip()
+    head = entry.split("@", 1)[0].split(":", 1)[0].lower()
+    if head in KNOWN_PROXY_MODES:
+        mode_part, _, rest = entry.partition("@")
+        mode = mode_part.split(":", 1)[0].lower()
+        host, port = split_hostport(rest) if rest else ("", 0)
+        return mode, host, port
+    host, port = split_hostport(entry)
+    return "regular", host, port
+
+
 def to_mitm_mode(entry: str) -> str:
-    """Convert a 'host:port' listen entry to a mitmproxy mode spec.
+    """Convert a proxy_listen entry to a mitmproxy mode spec.
+    Entries already carrying a known mode prefix pass through unchanged;
+    bare 'host:port' entries become 'regular@host:port'.
     mitmproxy 12 wants IPv6 hosts WITHOUT brackets (it splits on the last colon)."""
+    entry = entry.strip()
+    head = entry.split("@", 1)[0].split(":", 1)[0].lower()
+    if head in KNOWN_PROXY_MODES:
+        return entry
     host, port = split_hostport(entry)
     return f"regular@{host}:{port}"
 
@@ -226,7 +259,7 @@ class GlobalSettings(BaseModel):
     @property
     def primary_proxy_port(self) -> int:
         for e in self.proxy_listen:
-            _, p = split_hostport(e)
-            if p:
-                return p
+            mode, _host, port = parse_listen(e)
+            if mode in _PROXY_PORT_MODES and port:
+                return port
         return 8080

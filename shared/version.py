@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import subprocess
 from functools import lru_cache
 from pathlib import Path
@@ -13,13 +14,19 @@ def get_version() -> str:
     """Resolve the app version, reflecting the GitHub release.
 
     Priority:
-      1. A ``VERSION`` file at the app root. CI writes the release tag here when
+      1. The ``WEBFILTER_VERSION`` environment variable. The container image
+         bakes the release tag here at build time (see Dockerfile ``ARG``),
+         since the image ships without a ``VERSION`` file or ``.git`` directory.
+      2. A ``VERSION`` file at the app root. CI writes the release tag here when
          building the archive (which ships without a ``.git`` directory), e.g.
          ``v0.2.0``.
-      2. ``git describe --tags`` for a source checkout, e.g.
+      3. ``git describe --tags`` for a source checkout, e.g.
          ``v0.2.0-1-g29e6551`` (latest release tag plus commits ahead).
-      3. ``"dev"`` when neither is available.
+      4. ``"dev"`` when none is available.
     """
+    env = os.environ.get("WEBFILTER_VERSION", "").strip()
+    if env:
+        return env
     vfile = _ROOT / "VERSION"
     if vfile.exists():
         v = vfile.read_text(encoding="utf-8").strip()

@@ -30,6 +30,11 @@ COPY start.sh CLAUDE.md README.md ./
 # These hold state and are meant to be mounted as volumes (see compose file).
 RUN mkdir -p certs logs models
 
+# Release tag stamped in at build time (CI passes the git tag); the management
+# UI reports this. Defaults to "dev" for local `docker build` / `compose build`.
+ARG VERSION=dev
+ENV WEBFILTER_VERSION=$VERSION
+
 # 8080 = filtering proxy · 8000 = management UI
 EXPOSE 8080 8000
 

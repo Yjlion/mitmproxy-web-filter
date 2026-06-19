@@ -263,12 +263,6 @@
                 </tbody>
               </table>
             </div>
-            <div>
-              <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
-              <input x-model="safeExcludeText" @input="policy.safesearch.exclude = safeExcludeText.split(',').map(s=>s.trim()).filter(Boolean)"
-                     placeholder="trusted-engine.com, other.com"
-                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
           </div>
         </div>
 
@@ -539,7 +533,6 @@
         // text area mirrors
         allowText: '', blockText: '',
         dohExcludeText: '', dohIncludeText: '',
-        safeExcludeText: '',
         ytChannelsText: '',
         textExcludeText: '',
         imgExcludeText: '',
@@ -608,7 +601,6 @@
           this.blockText = (this.policy.url_filter.block || []).join('\n');
           this.dohExcludeText = (this.policy.doh.exclude || []).join('\n');
           this.dohIncludeText = (this.policy.doh.include_only || []).join('\n');
-          this.safeExcludeText = (this.policy.safesearch.exclude || []).join(', ');
           this.ytChannelsText = (this.policy.youtube.channels || []).join('\n');
           this.textExcludeText = (this.policy.text_classifier.exclude || []).join(', ');
           this.imgExcludeText = (this.policy.image_classifier.exclude || []).join(', ');

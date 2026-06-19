@@ -6,6 +6,7 @@
   <title data-i18n="doc.settings">Settings — WebFilter Proxy</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="i18n.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>[x-cloak] { display: none !important; }</style>
 </head>
@@ -90,16 +91,47 @@
           <div class="space-y-2">
             <template x-for="(addr, i) in settings.proxy_listen" :key="i">
               <div class="flex items-center gap-2">
-                <input type="text" x-model="settings.proxy_listen[i]"
+                <select :value="listenMode(addr)" @change="setListenMode(i, $event.target.value)"
+                        class="border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="regular">HTTP Proxy</option>
+                  <option value="socks5">SOCKS5</option>
+                  <option value="wireguard">WireGuard</option>
+                  <option value="dns">DNS</option>
+                  <option value="tun">TUN (Linux)</option>
+                  <option value="local">Local</option>
+                </select>
+                <input type="text" :value="listenAddr(addr)" @input="setListenAddr(i, $event.target.value)"
+                       placeholder="0.0.0.0:8080"
                        class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button type="button" @click="settings.proxy_listen.splice(i, 1)"
+                <button type="button" @click="settings.proxy_listen.splice(i, 1); refreshWireguard()"
                         class="px-2 py-2 text-gray-400 hover:text-red-500" title="Remove">✕</button>
               </div>
             </template>
             <button type="button" @click="settings.proxy_listen.push('0.0.0.0:8080')"
                     class="text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.addListen">+ Add listen address</button>
           </div>
-          <p class="text-xs text-gray-400" data-i18n="set.listenFormat">Format host:port. Examples: 0.0.0.0:8080 (all IPv4), [::]:8080 (all IPv6), [::1]:8080 (IPv6 localhost), 192.168.1.10:3128.</p>
+          <p class="text-xs text-gray-400" data-i18n="set.listenFormat">Format: host:port for HTTP/SOCKS5/WireGuard/DNS; leave address blank for TUN/Local.</p>
+          <p class="text-xs text-gray-400">Note: DNS uses port 53 (needs elevated privileges); TUN is Linux-only and needs root/CAP_NET_ADMIN; Local redirects this machine's own traffic.</p>
+        </div>
+
+        <!-- WireGuard panel -->
+        <div x-show="wg.enabled" x-cloak class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900" data-i18n="set.wireguard">WireGuard</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Endpoint: <span class="font-mono" x-text="wg.endpoint"></span></p>
+          </div>
+          <div x-show="wg.error" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2" x-text="wg.error"></div>
+          <template x-if="!wg.error && wg.conf">
+            <div class="space-y-3">
+              <textarea readonly rows="9" x-text="wg.conf"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono bg-gray-50 focus:outline-none resize-none"></textarea>
+              <div class="flex items-center gap-3">
+                <button type="button" @click="copyText(wg.conf)"
+                        class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.copy">Copy</button>
+              </div>
+              <div id="wg-qr" class="mt-2"></div>
+            </div>
+          </template>
         </div>
 
         <!-- Management bind -->
@@ -265,6 +297,56 @@
         newPassword: '',
         alert: '',
         alertType: 'success',
+        wg: { enabled: false },
+
+        listenMode(entry) {
+          const head = String(entry || '').split('@')[0].split(':')[0].toLowerCase();
+          const known = ['regular','transparent','socks5','upstream','reverse','wireguard','dns','tun','local'];
+          return known.includes(head) ? head : 'regular';
+        },
+        listenAddr(entry) {
+          const e = String(entry || '');
+          const head = e.split('@')[0].split(':')[0].toLowerCase();
+          const known = ['regular','transparent','socks5','upstream','reverse','wireguard','dns','tun','local'];
+          if (!known.includes(head)) return e;
+          const at = e.indexOf('@');
+          return at >= 0 ? e.slice(at + 1) : '';
+        },
+        serializeListen(mode, addr) {
+          if (mode === 'regular') return addr || '0.0.0.0:8080';
+          if (!addr) return mode;
+          return `${mode}@${addr}`;
+        },
+        setListenMode(i, mode) {
+          this.settings.proxy_listen[i] = this.serializeListen(mode, this.listenAddr(this.settings.proxy_listen[i]));
+          this.refreshWireguard();
+        },
+        setListenAddr(i, addr) {
+          this.settings.proxy_listen[i] = this.serializeListen(this.listenMode(this.settings.proxy_listen[i]), addr);
+        },
+
+        async refreshWireguard() {
+          try {
+            const r = await fetch('/api/wireguard');
+            if (r.ok) {
+              this.wg = await r.json();
+              this.$nextTick(() => this.renderQr());
+            } else {
+              this.wg = { enabled: false };
+            }
+          } catch (e) {
+            this.wg = { enabled: false };
+          }
+        },
+
+        renderQr() {
+          const el = document.getElementById('wg-qr');
+          if (!el) return;
+          el.innerHTML = '';
+          if (this.wg.conf && window.QRCode) {
+            new QRCode(el, { text: this.wg.conf, width: 220, height: 220 });
+          }
+        },
 
         async init() {
           try {
@@ -280,6 +362,7 @@
             const r = await fetch('/api/status');
             if (r.ok) this.status = await r.json();
           } catch (e) {}
+          await this.refreshWireguard();
         },
 
         pacUrl(path) { return location.origin + path; },
