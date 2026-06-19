@@ -8,14 +8,7 @@ This addon handles per-flow decisions for the "include-only" MITM mode.
 from __future__ import annotations
 from mitmproxy import http
 from proxy.block_page import make_block_response
-
-
-def _host_in_list(host: str, sites: list[str]) -> bool:
-    for s in sites:
-        s = s.lstrip("*.")
-        if host == s or host.endswith("." + s):
-            return True
-    return False
+from proxy.matching import domain_in_list
 
 
 def _ua_matches(ua: str, tokens: list[str]) -> bool:
@@ -47,7 +40,7 @@ class MitmControl:
         # Site-based include mode: pass through non-listed sites.
         if cfg.mode == "include" and cfg.sites:
             host = flow.request.pretty_host
-            if not _host_in_list(host, cfg.sites):
+            if not domain_in_list(host, cfg.sites):
                 flow.metadata["mitm_passthrough"] = True
 
         # User-Agent based passthrough.

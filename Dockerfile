@@ -25,6 +25,7 @@ COPY shared ./shared
 COPY scripts ./scripts
 COPY config ./config
 COPY policies ./policies
+COPY categories ./categories
 COPY start.sh CLAUDE.md README.md ./
 
 # These hold state and are meant to be mounted as volumes (see compose file).

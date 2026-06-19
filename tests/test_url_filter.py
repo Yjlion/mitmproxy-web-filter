@@ -4,7 +4,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 import proxy.addons.url_filter as url_filter
-from proxy.addons.url_filter import _host_matches, _url_matches, UrlFilter
+from proxy.addons.url_filter import UrlFilter
+from proxy.matching import host_matches as _host_matches, url_matches as _url_matches
 from shared.categories import CategoryStore
 from shared.models import Policy
 

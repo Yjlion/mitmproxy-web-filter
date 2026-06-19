@@ -72,11 +72,16 @@ def main() -> int:
 
     threading.Thread(target=_open_browser, daemon=True).start()
 
+    upstream_args: list[str] = []
+    if s.upstream_auth.strip():
+        upstream_args += ["--set", f"upstream_auth={s.upstream_auth.strip()}"]
+
     # Run the proxy in the foreground (its logs stay in this window).
     proxy = subprocess.Popen(
         [py, "scripts/run_proxy.py",
          "--set", "confdir=./certs",
          *proxy_mode_args,
+         *upstream_args,
          "-s", "proxy/main.py",
          "--set", "block_global=false"],
     )

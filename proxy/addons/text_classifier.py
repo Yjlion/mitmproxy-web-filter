@@ -14,6 +14,7 @@ from pathlib import Path
 import logging
 from mitmproxy import http
 from proxy.block_page import make_block_response
+from proxy.matching import url_in_list
 
 logger = logging.getLogger("webfilter.text")
 
@@ -67,11 +68,11 @@ def _classify(text: str, threshold: float) -> bool:
     return False
 
 
-def _should_filter(host: str, cfg) -> bool:
+def _should_filter(host: str, url: str, cfg) -> bool:
     if cfg.include_only:
-        return any(host == s or host.endswith("." + s) for s in cfg.include_only)
+        return url_in_list(host, url, cfg.include_only)
     if cfg.exclude:
-        return not any(host == s or host.endswith("." + s) for s in cfg.exclude)
+        return not url_in_list(host, url, cfg.exclude)
     return True
 
 
@@ -100,7 +101,8 @@ class TextClassifier:
             return
 
         host = flow.request.pretty_host
-        if not _should_filter(host, policy.text_classifier):
+        url = flow.request.pretty_url
+        if not _should_filter(host, url, policy.text_classifier):
             return
 
         _load_ml_model()

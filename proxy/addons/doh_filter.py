@@ -16,6 +16,7 @@ import time
 import logging
 from mitmproxy import http
 from proxy.block_page import make_block_response
+from proxy.matching import domain_in_list
 
 logger = logging.getLogger("webfilter.doh")
 
@@ -69,9 +70,9 @@ def _get_client() -> "httpx.AsyncClient":
 
 def _should_filter(host: str, cfg) -> bool:
     if cfg.include_only:
-        return any(host == s or host.endswith("." + s) for s in cfg.include_only)
+        return domain_in_list(host, cfg.include_only)
     if cfg.exclude:
-        return not any(host == s or host.endswith("." + s) for s in cfg.exclude)
+        return not domain_in_list(host, cfg.exclude)
     return True
 
 

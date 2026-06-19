@@ -110,6 +110,41 @@ class TestBomTolerantSettings:
         assert settings_route._load().mgmt_port == 9123
 
 
+class TestUpstreamProxy:
+    def test_regular_mode_rewritten_to_upstream(self):
+        s = GlobalSettings(proxy_listen=["0.0.0.0:8080"], upstream_proxy="http://up:3128")
+        assert s.proxy_modes == ["upstream:http://up:3128@0.0.0.0:8080"]
+
+    def test_socks5_not_rewritten_by_upstream(self):
+        s = GlobalSettings(proxy_listen=["socks5@0.0.0.0:1080"], upstream_proxy="http://up:3128")
+        assert s.proxy_modes == ["socks5@0.0.0.0:1080"]
+
+    def test_wireguard_not_rewritten_by_upstream(self):
+        s = GlobalSettings(proxy_listen=["wireguard@0.0.0.0:51820"], upstream_proxy="http://up:3128")
+        assert s.proxy_modes == ["wireguard@0.0.0.0:51820"]
+
+    def test_no_upstream_modes_unchanged(self):
+        s = GlobalSettings(proxy_listen=["0.0.0.0:8080"])
+        assert s.proxy_modes == ["regular@0.0.0.0:8080"]
+
+    def test_upstream_roundtrip(self):
+        s = GlobalSettings(upstream_proxy="http://proxy.corp:3128", upstream_auth="user:pass")
+        data = s.model_dump_json()
+        s2 = GlobalSettings.model_validate_json(data)
+        assert s2.upstream_proxy == "http://proxy.corp:3128"
+        assert s2.upstream_auth == "user:pass"
+
+    def test_multiple_listen_mixed_modes(self):
+        s = GlobalSettings(
+            proxy_listen=["0.0.0.0:8080", "socks5@0.0.0.0:1080", "wireguard@0.0.0.0:51820"],
+            upstream_proxy="http://up:3128",
+        )
+        modes = s.proxy_modes
+        assert modes[0] == "upstream:http://up:3128@0.0.0.0:8080"
+        assert modes[1] == "socks5@0.0.0.0:1080"
+        assert modes[2] == "wireguard@0.0.0.0:51820"
+
+
 class TestLogPaths:
     def test_derived_from_logs_dir(self):
         s = GlobalSettings(logs_dir="/var/log/wf")

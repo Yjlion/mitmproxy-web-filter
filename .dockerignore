@@ -16,4 +16,3 @@ models/*.joblib
 config/settings.json
 policies/*.json
 !policies/default.json
-categories

@@ -12,6 +12,7 @@ import logging
 import tempfile
 from mitmproxy import http
 from proxy.block_page import make_block_response
+from proxy.matching import url_in_list
 
 logger = logging.getLogger("webfilter.image")
 
@@ -112,11 +113,11 @@ _TRANSPARENT_GIF = (
 )
 
 
-def _should_filter(host: str, cfg) -> bool:
+def _should_filter(host: str, url: str, cfg) -> bool:
     if cfg.include_only:
-        return any(host == s or host.endswith("." + s) for s in cfg.include_only)
+        return url_in_list(host, url, cfg.include_only)
     if cfg.exclude:
-        return not any(host == s or host.endswith("." + s) for s in cfg.exclude)
+        return not url_in_list(host, url, cfg.exclude)
     return True
 
 
@@ -137,7 +138,8 @@ class ImageClassifier:
             return
 
         host = flow.request.pretty_host
-        if not _should_filter(host, policy.image_classifier):
+        url = flow.request.pretty_url
+        if not _should_filter(host, url, policy.image_classifier):
             return
 
         body = flow.response.raw_content

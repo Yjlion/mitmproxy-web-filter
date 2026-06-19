@@ -114,6 +114,12 @@ class PolicyRouter:
         global _settings
         _settings = load_settings()
 
+        try:
+            from shared import categories as cats
+            cats.configure(getattr(_settings, "categories_dir", "./categories"))
+        except Exception:
+            pass
+
         from proxy.block_page import init_logging
         if _settings.log_blocks:
             init_logging(_settings.blocks_log_path)
@@ -124,6 +130,12 @@ class PolicyRouter:
 
     def running(self):
         global _policies, _settings
+        _settings = load_settings()
+        try:
+            from shared import categories as cats
+            cats.configure(getattr(_settings, "categories_dir", "./categories"))
+        except Exception:
+            pass
         policies_dir = _project_root / _settings.policies_dir.lstrip("./")
         _policies = load_policies(policies_dir)
         logger.info(f"[policy_router] Loaded {len(_policies)} policies from {policies_dir}")

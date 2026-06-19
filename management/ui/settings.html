@@ -107,7 +107,7 @@
                         class="px-2 py-2 text-gray-400 hover:text-red-500" title="Remove">✕</button>
               </div>
             </template>
-            <button type="button" @click="settings.proxy_listen.push('0.0.0.0:8080')"
+            <button type="button" @click="settings.proxy_listen.push('0.0.0.0:' + freePort('regular', -1))"
                     class="text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.addListen">+ Add listen address</button>
           </div>
           <p class="text-xs text-gray-400" data-i18n="set.listenFormat">Format: host:port for HTTP/SOCKS5/WireGuard/DNS; leave address blank for TUN/Local.</p>
@@ -132,6 +132,29 @@
               <div id="wg-qr" class="mt-2"></div>
             </div>
           </template>
+        </div>
+
+        <!-- Upstream Proxy -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mb-4">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Upstream Proxy</h2>
+            <p class="text-xs text-gray-500 mt-0.5">When set, all regular-mode listeners forward through this parent proxy. Restart the proxy after changing.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Upstream Proxy URL</label>
+              <input type="text" x-model="settings.upstream_proxy" placeholder="http://proxy.example:3128"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">Upstream Auth <span class="text-gray-400">(optional)</span></label>
+              <input type="text" x-model="settings.upstream_auth" placeholder="user:pass"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div class="pt-1">
+            <button @click="save()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700" data-i18n="set.save">Save Settings</button>
+          </div>
         </div>
 
         <!-- Management bind -->
@@ -217,6 +240,12 @@
                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <p class="text-xs text-gray-400 mt-1" data-i18n="set.logsHelp">Holds blocks.jsonl and requests.jsonl.</p>
           </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1">Categories Directory</label>
+            <input type="text" x-model="settings.categories_dir" placeholder="./categories"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Holds the site-category blocklists used by URL filter policies.</p>
+          </div>
           <div class="space-y-2 pt-1">
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.log_blocks" />
@@ -292,7 +321,7 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], ui_language: 'en' },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, request_log_max: 2000, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
         status: { proxy_port: null },
         newPassword: '',
         alert: '',
@@ -317,8 +346,29 @@
           if (!addr) return mode;
           return `${mode}@${addr}`;
         },
+        defaultPortFor(mode) {
+          return ({ regular: 8080, socks5: 1080, wireguard: 51820, dns: 53, tun: '', local: '' })[mode];
+        },
+        usedPorts(exceptIndex) {
+          const ports = new Set();
+          this.settings.proxy_listen.forEach((e, idx) => {
+            if (idx === exceptIndex) return;
+            const m = this.listenAddr(e).match(/:(\d+)$/);
+            if (m) ports.add(+m[1]);
+          });
+          return ports;
+        },
+        freePort(mode, i) {
+          let p = this.defaultPortFor(mode);
+          if (p === '') return '';
+          const used = this.usedPorts(i);
+          while (used.has(p)) p++;
+          return p;
+        },
         setListenMode(i, mode) {
-          this.settings.proxy_listen[i] = this.serializeListen(mode, this.listenAddr(this.settings.proxy_listen[i]));
+          const port = this.freePort(mode, i);
+          const addr = port === '' ? '' : `0.0.0.0:${port}`;
+          this.settings.proxy_listen[i] = this.serializeListen(mode, addr);
           this.refreshWireguard();
         },
         setListenAddr(i, addr) {

@@ -198,6 +198,7 @@ class GlobalSettings(BaseModel):
     mgmt_port: int = 8000
     cert_dir: str = "./certs"
     policies_dir: str = "./policies"
+    categories_dir: str = "./categories"
     # Interface language (ISO 639 code). Drives both the management UI and the
     # proxy-served block page, so it is stored server-side rather than only in
     # the browser. One of: en, he, yi, es, fr, de, zh.
@@ -218,6 +219,11 @@ class GlobalSettings(BaseModel):
     # pac_direct_hosts go straight to the internet (no proxy) in the PAC.
     pac_proxy_host: str = ""
     pac_direct_hosts: list[str] = Field(default_factory=list)
+    # Upstream (parent) proxy. When set, regular-mode listeners chain through it
+    # (mitmproxy "upstream" mode). Form: scheme://host:port, e.g.
+    # "http://proxy.corp:3128". upstream_auth is optional "user:pass".
+    upstream_proxy: str = ""
+    upstream_auth: str = ""
 
     @model_validator(mode="before")
     @classmethod
@@ -254,7 +260,15 @@ class GlobalSettings(BaseModel):
 
     @property
     def proxy_modes(self) -> list[str]:
-        return [to_mitm_mode(e) for e in self.proxy_listen]
+        up = self.upstream_proxy.strip()
+        modes: list[str] = []
+        for e in self.proxy_listen:
+            spec = to_mitm_mode(e)
+            if up and spec.startswith("regular@"):
+                listen = spec[len("regular@"):]
+                spec = f"upstream:{up}@{listen}"
+            modes.append(spec)
+        return modes
 
     @property
     def primary_proxy_port(self) -> int:

@@ -20,7 +20,8 @@ logs/
 models/*.joblib
 
 # Downloaded site-category blocklists (populated by scripts/update_categories.sh)
-categories/
+/categories/*
+!/categories/.gitkeep
 
 # Local config holds secrets (password hash, cookie secret) — ship the example instead
 config/settings.json

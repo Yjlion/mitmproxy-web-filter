@@ -123,6 +123,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Refresh site category blocklists
+        shell: bash
+        run: |
+          bash scripts/update_categories.sh || echo "::warning::update_categories failed; shipping committed category lists"
+          mkdir -p categories
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

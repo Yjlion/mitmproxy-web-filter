@@ -167,7 +167,9 @@ def _read_all_jsonl(path: Path) -> list[dict]:
 @app.get("/api/categories")
 def get_categories():
     """Shared site categories available to policies (from categories/index.json)."""
-    from shared.categories import list_categories, index_meta
+    from shared.categories import list_categories, index_meta, configure
+    s = _load_settings()
+    configure(s.categories_dir)
     return {"categories": list_categories(), **index_meta()}
 
 

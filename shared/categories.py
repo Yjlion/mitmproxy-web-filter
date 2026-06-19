@@ -31,6 +31,13 @@ INDEX_PATH = CATEGORIES_DIR / "index.json"
 CHECK_INTERVAL = 60.0  # seconds between mtime re-checks of a loaded category
 
 
+def configure(base) -> None:
+    """Point the shared store + index at a different categories directory."""
+    global INDEX_PATH
+    store.base = Path(base)
+    INDEX_PATH = store.base / "index.json"
+
+
 def list_categories() -> list[dict]:
     """Category metadata from the on-disk index (empty if not populated yet)."""
     if not INDEX_PATH.exists():
