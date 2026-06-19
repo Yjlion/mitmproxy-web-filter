@@ -396,6 +396,14 @@
               </div>
               <p class="text-xs text-gray-400 mt-1" data-i18n="ed.imgRecommend">~0.4 recommended. Thumbnails often score low; higher values miss them.</p>
             </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700 block mb-1">
+                <span data-i18n="ed.minDimension">Minimum image size (px):</span> <span class="font-mono" x-text="policy.image_classifier.min_dimension"></span>
+              </label>
+              <input type="number" min="0" max="512" step="1" x-model.number="policy.image_classifier.min_dimension"
+                     class="w-32 border border-gray-300 rounded px-2 py-1 text-sm" />
+              <p class="text-xs text-gray-400 mt-1" data-i18n="ed.minDimHelp">Skip images whose largest side is under this many pixels (favicons, icons). Lower it to catch small thumbnails like Google image search (~100). 0 = classify everything.</p>
+            </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="ed.excludeSites">Exclude Sites</label>
@@ -713,7 +721,7 @@
         }, exclude: [], include_only: [] },
         youtube: { enabled: false, mode: 'blacklist', channels: [], exclude: [], include_only: [], block_home: true, remove_comments: false, remove_recommendations: false },
         text_classifier: { enabled: false, threshold: 0.8, exclude: [], include_only: [] },
-        image_classifier: { enabled: false, action: 'blur', threshold: 0.4, exclude: [], include_only: [] },
+        image_classifier: { enabled: false, action: 'blur', threshold: 0.4, min_dimension: 100, exclude: [], include_only: [] },
         mitm: { mode: 'exclude', sites: [], ua_mode: 'off', user_agents: [] },
         block_page: { template: 'default', message: '' },
       };

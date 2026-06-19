@@ -85,6 +85,10 @@ class ImageClassifierConfig(BaseModel):
     # NudeNet scores real-world thumbnails ~0.2-0.6, so a high threshold misses
     # most of them. 0.4 favors recall (blurring is non-destructive).
     threshold: float = 0.4
+    # Skip images whose largest side is under this many pixels (favicons, icons,
+    # tracking pixels). Gating on dimensions instead of byte size lets small but
+    # real thumbnails (e.g. Google image-search results) through to the detector.
+    min_dimension: int = 100
     exclude: list[str] = Field(default_factory=list)
     include_only: list[str] = Field(default_factory=list)
 

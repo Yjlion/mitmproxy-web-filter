@@ -246,7 +246,7 @@ The PAC response self-adapts the proxy address from the incoming request's `Host
 - Uses NudeNet 3.x (ONNX, CPU-only, no GPU required).
 - Detects: `FEMALE_GENITALIA_EXPOSED`, `MALE_GENITALIA_EXPOSED`, `FEMALE_BREAST_EXPOSED`, `BUTTOCKS_EXPOSED`, `ANUS_EXPOSED`.
 - Actions: `blur` (Gaussian, radius ∝ image size), `checkerboard` placeholder, or `block` (transparent 1×1 GIF).
-- Skips images smaller than 10 KB (icons, favicons, tracking pixels).
+- Skips images whose largest side is under `image_classifier.min_dimension` px (default 100) — favicons, icons, tracking pixels. Dimensions are read from the image header (PIL, no full decode); a 1 KB byte floor cheaply discards genuine pixels first. Gating on dimensions rather than byte size lets small-but-real thumbnails (e.g. Google image search, often ~2-8 KB) reach the detector.
 - Requires `nudenet` package; addon silently skips if import fails.
 
 ## Settings Schema (GlobalSettings)

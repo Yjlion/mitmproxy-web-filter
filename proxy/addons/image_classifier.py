@@ -16,7 +16,10 @@ from proxy.matching import url_in_list
 
 logger = logging.getLogger("webfilter.image")
 
-_MIN_IMAGE_BYTES = 10_240  # 10 KB
+# Cheap floor to discard genuine tracking pixels / spacers without decoding.
+# Real filtering is gated on pixel dimensions (see _too_small), since heavily
+# compressed thumbnails (e.g. Google image search) can be only a few KB.
+_MIN_IMAGE_BYTES = 1_024  # 1 KB
 # NudeNet 3.x class labels for explicit exposure (renamed from the 2.x labels).
 _NSFW_LABELS = {
     "FEMALE_GENITALIA_EXPOSED",
@@ -113,6 +116,23 @@ _TRANSPARENT_GIF = (
 )
 
 
+def _too_small(image_bytes: bytes, min_dimension: int) -> bool:
+    """True if the image's largest side is under min_dimension pixels.
+
+    Reads only the image header (no full decode). If dimensions can't be
+    determined, returns False so the image still gets classified.
+    """
+    if min_dimension <= 0:
+        return False
+    try:
+        from PIL import Image
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            w, h = img.size
+        return max(w, h) < min_dimension
+    except Exception:
+        return False
+
+
 def _should_filter(host: str, url: str, cfg) -> bool:
     if cfg.include_only:
         return url_in_list(host, url, cfg.include_only)
@@ -147,6 +167,9 @@ class ImageClassifier:
             return
 
         cfg = policy.image_classifier
+        if _too_small(body, cfg.min_dimension):
+            return
+
         nsfw, detections = _is_nsfw(body, cfg.threshold)
         if not nsfw:
             return

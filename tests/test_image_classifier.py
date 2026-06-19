@@ -49,6 +49,26 @@ def test_checkerboard_matches_dimensions():
     assert board.format == "PNG"
 
 
+def test_too_small_skips_tiny_images():
+    favicon = _benign_jpeg(size=(32, 32))
+    assert ic._too_small(favicon, min_dimension=100) is True
+
+
+def test_too_small_passes_real_thumbnails():
+    # A small (few-KB) but real Google-style thumbnail must reach the detector.
+    thumb = _benign_jpeg(size=(200, 150))
+    assert ic._too_small(thumb, min_dimension=100) is False
+
+
+def test_too_small_disabled_when_zero():
+    assert ic._too_small(_benign_jpeg(size=(16, 16)), min_dimension=0) is False
+
+
+def test_too_small_unreadable_bytes_not_skipped():
+    # If dimensions can't be parsed, fall through to classification (fail open).
+    assert ic._too_small(b"not an image", min_dimension=100) is False
+
+
 def test_no_tempfile_leak(tmp_path, monkeypatch):
     before = set(Path(tempfile_dir()).glob("*.img"))
     ic._is_nsfw(_benign_jpeg(), threshold=0.5)
