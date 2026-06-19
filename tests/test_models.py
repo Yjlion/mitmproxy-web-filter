@@ -34,3 +34,5 @@ def test_global_settings_defaults():
     assert s.mgmt_port == 8000
     assert s.log_blocks is True
     assert s.log_requests is True
+    assert s.log_retention_days == 30
+    assert s.db_path.endswith("webfilter.db")

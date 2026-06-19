@@ -150,3 +150,12 @@ class TestLogPaths:
         s = GlobalSettings(logs_dir="/var/log/wf")
         assert s.blocks_log_path.replace("\\", "/") == "/var/log/wf/blocks.jsonl"
         assert s.request_log_path.replace("\\", "/") == "/var/log/wf/requests.jsonl"
+        assert s.db_path.replace("\\", "/") == "/var/log/wf/webfilter.db"
+
+    def test_log_retention_days_default(self):
+        s = GlobalSettings()
+        assert s.log_retention_days == 30
+
+    def test_log_retention_days_custom(self):
+        s = GlobalSettings(log_retention_days=7)
+        assert s.log_retention_days == 7

@@ -12,10 +12,10 @@ later; nothing here is committed to yet.
   - Touches: `shared/models.py` (new `ScheduleConfig`), `proxy/addons/policy_router.py`,
     policy editor UI, tests.
 
-- [ ] **2. Analytics dashboard** — aggregate the existing `logs/requests.jsonl`
-  (action/component/policy/client_ip) into a UI page: top blocked domains,
-  blocks over time, per-device breakdown, most-active categories. _~Low–medium._
-  - Touches: new management API route, new/extended UI page. Data already logged.
+- [x] **2. Analytics dashboard** — ✅ Implemented. Aggregates `logs/requests.jsonl`
+  and `logs/blocks.jsonl` into `management/ui/analytics.html` via `/api/analytics`:
+  summary cards, top blocked domains, blocks by filter, blocks over time, and a
+  per-device breakdown (windows up to 30 days).
 
 - [ ] **3. Temporary override / "allow for 30 min"** — admin button (and
   optional "request access" link on the block page) granting a domain a
@@ -32,6 +32,23 @@ later; nothing here is committed to yet.
 
 - [ ] **6. Per-policy time budgets / quotas** — e.g. "1 hour of YouTube per
   day". Needs persistent per-device usage accounting.
+
+- [ ] **9. Test-a-link page** — a `tester.html` admin page + nav item with two
+  modes. _~Medium._ (Shelved; logging redesign goes first.)
+  - **Mode 1 — Policy dry-run** (`POST /api/test/policy` with `{source_ip, url}`):
+    report which policy matches (exact / CIDR / catch-all and why) and the
+    request-side verdict (url_filter allow/block, category hit, safesearch
+    rewrite, mitm passthrough) with the reason. Reuses `proxy/matching.py` and a
+    pure refactor of `policy_router.get_policy`. Covers request-side only;
+    response-side (classifiers, YouTube) can't be predicted from a URL alone.
+  - **Mode 2 — Run a URL through the classifiers.** Architecture undecided:
+    (A) classify in the mgmt API (httpx fetch + lazy-loaded NudeNet/text logic —
+    simplest, but duplicates the model into a 2nd process and doesn't exercise
+    the real pipeline); (B) "test mode" routed through the real proxy (forces a
+    chosen policy, emits a verdict instead of mutating content — exact pipeline,
+    more work, needs proxy CA trust for httpx). Open sub-questions: HTML pages =
+    text-only vs also scan embedded images; run under a chosen policy's
+    thresholds vs fixed defaults; SSRF surface (admin-only, auth-gated).
 
 ## 🔵 Lower effort, narrower scope
 

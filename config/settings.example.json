@@ -10,7 +10,7 @@
   "logs_dir": "./logs",
   "log_blocks": true,
   "log_requests": true,
-  "request_log_max": 2000,
+  "log_retention_days": 30,
   "default_policy": null,
   "auth_enabled": false,
   "password_hash": "",
