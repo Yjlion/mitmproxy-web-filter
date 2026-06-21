@@ -235,6 +235,7 @@ class GlobalSettings(BaseModel):
     # pac_direct_hosts go straight to the internet (no proxy) in the PAC.
     pac_proxy_host: str = ""
     pac_direct_hosts: list[str] = Field(default_factory=list)
+    pac_direct_ips: list[str] = Field(default_factory=list)
     # Upstream (parent) proxy. When set, regular-mode listeners chain through it
     # (mitmproxy "upstream" mode). Form: scheme://host:port, e.g.
     # "http://proxy.corp:3128". upstream_auth is optional "user:pass".

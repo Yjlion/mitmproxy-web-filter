@@ -213,6 +213,22 @@
             </div>
             <p class="text-xs text-gray-400 mt-1" data-i18n="set.directHelp">These bypass the proxy entirely. Subdomains are included automatically. Localhost and private IP ranges are always direct.</p>
           </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.directIps">Direct (non-proxied) IPs / ranges</label>
+            <div class="space-y-2">
+              <template x-for="(ip, i) in settings.pac_direct_ips" :key="i">
+                <div class="flex items-center gap-2">
+                  <input type="text" x-model="settings.pac_direct_ips[i]" data-i18n-ph="set.directIpPh" placeholder="203.0.113.0/24"
+                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <button type="button" @click="settings.pac_direct_ips.splice(i, 1)"
+                          class="px-2 py-2 text-gray-400 hover:text-red-500" title="Remove">✕</button>
+                </div>
+              </template>
+              <button type="button" @click="settings.pac_direct_ips.push('')"
+                      class="text-sm text-blue-600 hover:text-blue-800 font-medium" data-i18n="set.addDirectIp">+ Add direct IP / range</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.directIpHelp">IPv4 addresses and CIDR ranges (e.g. 10.10.0.0/16) bypass the proxy via <code>isInNet</code>. IPv6 addresses use an exact match.</p>
+          </div>
         </div>
 
         <!-- Directories & logging -->
@@ -326,7 +342,7 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], pac_direct_ips: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
         status: { proxy_port: null },
         newPassword: '',
         alert: '',
@@ -410,6 +426,7 @@
               const s = await res.json();
               if (!Array.isArray(s.proxy_listen) || s.proxy_listen.length === 0) s.proxy_listen = ['0.0.0.0:8080'];
               if (!Array.isArray(s.pac_direct_hosts)) s.pac_direct_hosts = [];
+              if (!Array.isArray(s.pac_direct_ips)) s.pac_direct_ips = [];
               this.settings = s;
             }
           } catch (e) {}
@@ -435,6 +452,8 @@
           delete payload.ui_language;
           if (Array.isArray(payload.pac_direct_hosts))
             payload.pac_direct_hosts = payload.pac_direct_hosts.map(h => (h || '').trim()).filter(Boolean);
+          if (Array.isArray(payload.pac_direct_ips))
+            payload.pac_direct_ips = payload.pac_direct_ips.map(h => (h || '').trim()).filter(Boolean);
           if (this.newPassword) payload.new_password = this.newPassword;
           try {
             const res = await fetch('/api/settings', {
