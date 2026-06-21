@@ -155,7 +155,10 @@ class PolicyRouter:
         policies_dir = _project_root / _settings.policies_dir.lstrip("./")
         _policies = load_policies(policies_dir)
         logger.info(f"[policy_router] Loaded {len(_policies)} policies from {policies_dir}")
-        asyncio.ensure_future(self._watch(policies_dir))
+        # Keep a strong reference to the task. In Python 3.12+ asyncio only holds
+        # a weak reference to tasks, so without this the GC can destroy the watcher
+        # before it ever fires.
+        self._watch_task = asyncio.ensure_future(self._watch(policies_dir))
 
         # Seed ignore_hosts from policies (MITM exclusions)
         self._sync_ignore_hosts()
@@ -167,13 +170,21 @@ class PolicyRouter:
     async def _watch(self, policies_dir: Path) -> None:
         try:
             from watchfiles import awatch
-            async for _ in awatch(str(policies_dir)):
-                global _policies
-                _policies = load_policies(policies_dir)
-                logger.info(f"[policy_router] Reloaded {len(_policies)} policies")
-                self._sync_ignore_hosts()
         except ImportError:
-            pass  # watchfiles not installed; hot-reload disabled
+            return  # watchfiles not installed; hot-reload disabled
+
+        while True:
+            try:
+                async for _ in awatch(str(policies_dir)):
+                    global _policies
+                    _policies = load_policies(policies_dir)
+                    logger.info(f"[policy_router] Reloaded {len(_policies)} policies")
+                    self._sync_ignore_hosts()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.warning("[policy_router] Watcher error: %s; restarting in 5s", exc)
+                await asyncio.sleep(5)
 
     def _sync_ignore_hosts(self) -> None:
         domains: set[str] = set()
