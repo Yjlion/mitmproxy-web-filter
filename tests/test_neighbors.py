@@ -135,3 +135,37 @@ class TestScanAndLookup:
 
     def test_lookup_empty_ip(self):
         assert neighbors.lookup("") is None
+
+    def test_scan_rows_have_vendor_key(self, monkeypatch):
+        """Every row returned by scan() must include a 'vendor' key (may be '')."""
+        monkeypatch.setattr(neighbors, "_raw_scan", lambda: [
+            {"ip": "192.168.1.50", "mac": "aa:bb:cc:dd:ee:ff", "iface": "eth0"},
+            {"ip": "192.168.1.20", "mac": "12:22:33:44:55:66", "iface": "eth0"},
+        ])
+        rows = neighbors.scan()
+        assert len(rows) == 2
+        for row in rows:
+            assert "vendor" in row
+            assert isinstance(row["vendor"], str)
+
+    def test_scan_vendor_known_prefix(self, monkeypatch, tmp_path):
+        """scan() enriches rows with vendor data from the OUI module."""
+        from shared import oui as _oui_mod
+        # Provide a mini OUI file with one known prefix.
+        data_file = tmp_path / "oui.txt"
+        data_file.write_text("aabbcc\tTest Vendor Corp\n", encoding="utf-8")
+        monkeypatch.setattr(_oui_mod, "_DATA_FILE", data_file)
+        # Reset OUI cache so our file is picked up.
+        with _oui_mod._lock:
+            _oui_mod._table = {}
+            _oui_mod._loaded_mtime = -1.0
+            _oui_mod._last_check = 0.0
+
+        monkeypatch.setattr(neighbors, "_raw_scan", lambda: [
+            {"ip": "10.0.0.1", "mac": "aa:bb:cc:dd:ee:ff", "iface": "eth0"},
+            {"ip": "10.0.0.2", "mac": "de:ad:be:ef:00:01", "iface": "eth0"},
+        ])
+        rows = neighbors.scan()
+        vendor_map = {r["mac"]: r["vendor"] for r in rows}
+        assert vendor_map["aa:bb:cc:dd:ee:ff"] == "Test Vendor Corp"
+        assert vendor_map["de:ad:be:ef:00:01"] == ""
