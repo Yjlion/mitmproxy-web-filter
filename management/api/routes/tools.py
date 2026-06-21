@@ -290,6 +290,10 @@ def tools_neighbors():
     Powers the policy editor's "scan network" picker. Only devices on the same
     L2 segment as the proxy appear here. Best-effort: returns an empty list on
     any platform/tooling failure.
+
+    Each entry includes: ip, mac, iface, and vendor (IEEE OUI vendor name,
+    empty string when unknown). Vendor data comes from shared/data/oui.txt;
+    run scripts/update_oui to refresh the full dataset.
     """
     from shared import neighbors
     return {"neighbors": neighbors.scan()}

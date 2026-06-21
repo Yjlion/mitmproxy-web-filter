@@ -24,6 +24,8 @@ import sys
 import threading
 import time
 
+from shared import oui as _oui
+
 # Cache the parsed neighbor table for a short window so a busy proxy does not
 # shell out on every request.
 _TTL_SECONDS = 30.0
@@ -261,16 +263,21 @@ def _is_unicast(mac: str) -> bool:
 def scan() -> list[dict]:
     """Return the current neighbor table, de-duplicated by MAC and sorted by IP.
 
-    Each entry is ``{"ip": str, "mac": str, "iface": str}``. Broadcast and
-    multicast MACs are excluded since they never target a single device.
-    Best-effort: returns ``[]`` on any platform/tooling failure.
+    Each entry is ``{"ip": str, "mac": str, "iface": str, "vendor": str}``.
+    ``vendor`` is the IEEE-registered OUI vendor name (empty string when
+    unknown). Broadcast and multicast MACs are excluded since they never
+    target a single device. Best-effort: returns ``[]`` on any
+    platform/tooling failure.
     """
     seen: dict[str, dict] = {}
     for row in _raw_scan():
         mac = row["mac"]
         if mac and _is_unicast(mac) and mac not in seen:
             seen[mac] = row
-    return sorted(seen.values(), key=lambda r: r["ip"])
+    result = sorted(seen.values(), key=lambda r: r["ip"])
+    for row in result:
+        row["vendor"] = _oui.vendor_for(row.get("mac", ""))
+    return result
 
 
 def _refresh_cache() -> None:
