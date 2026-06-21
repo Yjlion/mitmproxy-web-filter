@@ -44,7 +44,20 @@ def _addon_with_settings(**kwargs) -> ManagementAccess:
     """Return a ManagementAccess instance with patched module-level _settings."""
     s = GlobalSettings(**kwargs)
     ma._settings = s
+    ma._detected_ipv4 = None  # reset auto-detect cache between tests
     return ManagementAccess()
+
+
+def _make_dns_flow(name: str, qtype: int):
+    """Return a minimal DNS flow with a single question, mirroring the fields
+    management_access.dns_request reads."""
+    from mitmproxy.dns import Question
+    from mitmproxy.test import tflow
+
+    flow = tflow.tdnsflow()
+    flow.request.questions = [Question(name=name, type=qtype, class_=1)]
+    flow.response = None
+    return flow
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +114,75 @@ class TestPseudoDomainRedirect:
         addon.request(flow)
         assert flow.response is not None
         assert flow.response.status_code == 302
+
+
+# ---------------------------------------------------------------------------
+# DNS resolution of the pseudo-domain (dns_request hook)
+# ---------------------------------------------------------------------------
+
+class TestPseudoDomainDns:
+    def test_a_query_answered_with_configured_ip(self):
+        from mitmproxy import dns
+        addon = _addon_with_settings(
+            mgmt_hostname="web.filter", mgmt_hostname_ip="10.0.0.5"
+        )
+        flow = _make_dns_flow("web.filter", dns.types.A)
+        addon.dns_request(flow)
+        assert flow.response is not None
+        ips = [str(r.ipv4_address) for r in flow.response.answers]
+        assert ips == ["10.0.0.5"]
+
+    def test_a_query_trailing_dot_and_case(self):
+        from mitmproxy import dns
+        for name in ("web.filter.", "WEB.FILTER"):
+            addon = _addon_with_settings(
+                mgmt_hostname="web.filter", mgmt_hostname_ip="10.0.0.5"
+            )
+            flow = _make_dns_flow(name, dns.types.A)
+            addon.dns_request(flow)
+            assert flow.response is not None
+            assert [str(r.ipv4_address) for r in flow.response.answers] == ["10.0.0.5"]
+
+    def test_aaaa_query_is_nodata(self):
+        """AAAA for the pseudo-domain returns NOERROR with no answers so the
+        client falls back to the A record rather than failing."""
+        from mitmproxy import dns
+        addon = _addon_with_settings(
+            mgmt_hostname="web.filter", mgmt_hostname_ip="10.0.0.5"
+        )
+        flow = _make_dns_flow("web.filter", dns.types.AAAA)
+        addon.dns_request(flow)
+        assert flow.response is not None
+        assert flow.response.answers == []
+
+    def test_unrelated_name_forwarded(self):
+        """A query for any other name is left untouched (forwarded upstream)."""
+        from mitmproxy import dns
+        addon = _addon_with_settings(
+            mgmt_hostname="web.filter", mgmt_hostname_ip="10.0.0.5"
+        )
+        flow = _make_dns_flow("example.com", dns.types.A)
+        addon.dns_request(flow)
+        assert flow.response is None
+
+    def test_custom_pseudo_domain_resolved(self):
+        from mitmproxy import dns
+        addon = _addon_with_settings(
+            mgmt_hostname="myproxy.local", mgmt_hostname_ip="10.0.0.5"
+        )
+        flow = _make_dns_flow("myproxy.local", dns.types.A)
+        addon.dns_request(flow)
+        assert flow.response is not None
+        assert [str(r.ipv4_address) for r in flow.response.answers] == ["10.0.0.5"]
+
+    def test_blank_ip_autodetects(self, monkeypatch):
+        """With no configured IP, the answer uses the auto-detected primary IPv4."""
+        from mitmproxy import dns
+        monkeypatch.setattr(ma, "_detect_primary_ipv4", lambda: "192.0.2.7")
+        addon = _addon_with_settings(mgmt_hostname="web.filter", mgmt_hostname_ip="")
+        flow = _make_dns_flow("web.filter", dns.types.A)
+        addon.dns_request(flow)
+        assert [str(r.ipv4_address) for r in flow.response.answers] == ["192.0.2.7"]
 
 
 # ---------------------------------------------------------------------------
