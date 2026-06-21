@@ -174,6 +174,12 @@
             </div>
           </div>
           <p class="text-xs text-gray-400" data-i18n="set.bindHelp">0.0.0.0 = all IPv4 · 127.0.0.1 = this machine only · :: = all IPv6.</p>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1" data-i18n="set.mgmtHostname">Management pseudo-domain</label>
+            <input type="text" x-model="settings.mgmt_hostname" data-i18n-ph="set.mgmtHostnamePh" placeholder="web.filter"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1" data-i18n="set.mgmtHostnameHelp">Access the management UI through the proxy at this hostname (e.g. http://web.filter). The proxy redirects requests for this hostname to the real management server.</p>
+          </div>
         </div>
 
         <!-- Proxy auto-config (PAC / WPAD) -->
@@ -342,7 +348,7 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], pac_direct_ips: [], upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], pac_direct_ips: [], mgmt_hostname: 'web.filter', upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
         status: { proxy_port: null },
         newPassword: '',
         alert: '',
@@ -427,6 +433,7 @@
               if (!Array.isArray(s.proxy_listen) || s.proxy_listen.length === 0) s.proxy_listen = ['0.0.0.0:8080'];
               if (!Array.isArray(s.pac_direct_hosts)) s.pac_direct_hosts = [];
               if (!Array.isArray(s.pac_direct_ips)) s.pac_direct_ips = [];
+              if (!s.mgmt_hostname) s.mgmt_hostname = 'web.filter';
               this.settings = s;
             }
           } catch (e) {}

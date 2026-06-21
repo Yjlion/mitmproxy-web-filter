@@ -14,5 +14,7 @@
   "default_policy": null,
   "auth_enabled": false,
   "password_hash": "",
-  "secret_key": ""
+  "secret_key": "",
+  "pac_direct_ips": [],
+  "mgmt_hostname": "web.filter"
 }

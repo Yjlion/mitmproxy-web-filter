@@ -28,6 +28,10 @@ start.bat             # Windows — opens two separate console windows
 # Update site category blocklists
 bash scripts/update_categories.sh
 
+# Update OUI vendor lookup table (full ~35k entry Wireshark manuf list)
+bash scripts/update_oui.sh           # Linux / macOS
+scripts\update_oui.ps1               # Windows (PowerShell)
+
 # DOH resolver diagnostics
 .venv/bin/python scripts/doh_check.py
 ```
@@ -112,7 +116,7 @@ Two independent processes share the `policies/` directory on disk:
 - **Policy = JSON file**: one file per policy in `policies/`. File name = `{safe_policy_name}.json`. The proxy watches for file changes and hot-reloads without restart.
 - **Source matching**: matched by specificity, most specific first — (0) MAC match, (1) exact single-IP match, (2) CIDR block match (longest/narrowest prefix wins), (3) catch-all (empty `source_ips`). Within a tier, policies are checked in alphabetical file order (first wins).
 - **MAC matching**: a policy's `source_macs` are matched ahead of any IP rule, so a policy follows a device across DHCP IP changes. The MAC is resolved from the client IP via the OS neighbor table (`shared/neighbors.py` — ARP for IPv4, NDP for IPv6). **Only works for devices on the proxy's own L2 segment** (a device behind a router resolves to the router's MAC). Best-effort and fails open: if no MAC resolves, matching falls through to the IP tiers. `lookup()` caches the table for 30 s so it doesn't shell out per request.
-- **Addon execution order**: `policy_router` → `mitm_control` → `url_filter` → `doh_filter` → `safesearch` → `youtube_filter` → then response hooks: `text_classifier` → `image_classifier` → `request_logger`.
+- **Addon execution order**: `management_access` → `policy_router` → `mitm_control` → `url_filter` → `doh_filter` → `safesearch` → `youtube_filter` → then response hooks: `text_classifier` → `image_classifier` → `request_logger`. `management_access` runs first so it can protect management traffic before any policy is applied.
 - **Allow-list short-circuits everything**: a match in `url_filter.allow` sets `flow.metadata["url_allowed"] = True`; all downstream addons check this flag and skip the flow.
 - **MITM bypass**: done globally via `ctx.options.ignore_hosts` (regex), aggregated from all policies' `mitm.mode == "exclude"` lists. Per-source-IP TLS bypass is architecturally impossible in mitmproxy.
 - **MITM passthrough (filtering skip)**: `mitm_control` sets `flow.metadata["mitm_passthrough"]` for include-mode non-listed sites and for User-Agent rules (`mitm.ua_mode` / `mitm.user_agents`, case-insensitive substring match). This can't un-intercept TLS — the User-Agent header isn't visible until after interception — it only causes filtering addons to skip the flow.
@@ -123,6 +127,7 @@ Two independent processes share the `policies/` directory on disk:
 
 | File | Hook | Purpose |
 |---|---|---|
+| `management_access.py` | `request` | **Runs first.** Redirect pseudo-domain to management UI; mark management traffic as allowed+passthrough |
 | `policy_router.py` | `request` | Attach policy to flow (MAC → IP → CIDR → catch-all); aggregate ignore_hosts |
 | `mitm_control.py` | `request` | Mark passthrough for include-mode sites + UA rules |
 | `url_filter.py` | `request` | Block/allow URLs and domains; check categories |
@@ -207,8 +212,9 @@ Supported providers: `nextdns`, `cloudflare`, `cleanbrowsing`, `adguard`. Detect
 Rules in order:
 1. Plain hostnames (no dots) → `DIRECT`
 2. Private/loopback ranges (10.x, 172.16–31.x, 192.168.x, 169.254.x, 127.x) → `DIRECT`
-3. Hosts matching `pac_direct_hosts` setting (wildcard support) → `DIRECT`
-4. Everything else → `PROXY <host>:<port>` (no DIRECT fallback — intentional)
+3. User-configured IP/CIDR ranges (`pac_direct_ips`): IPv4 → `isInNet` (inside the IPv4-literal guard), IPv6 → exact `shExpMatch`
+4. Hosts matching `pac_direct_hosts` setting (wildcard support) → `DIRECT`
+5. Everything else → `PROXY <host>:<port>` (no DIRECT fallback — intentional)
 
 The PAC response self-adapts the proxy address from the incoming request's `Host` header.
 
@@ -279,6 +285,8 @@ auth_enabled        bool        Enable login page / session auth
 password_hash       str         PBKDF2 hash (managed by settings API)
 secret_key          str         HMAC key for session tokens (auto-generated)
 pac_direct_hosts    list[str]   Hosts to go DIRECT in PAC (wildcard OK)
+pac_direct_ips      list[str]   IPv4/CIDR ranges or IPv6 addresses to go DIRECT in PAC
+mgmt_hostname       str         Pseudo-domain the proxy redirects to the management UI (default "web.filter")
 ```
 
 ## Test Suite
