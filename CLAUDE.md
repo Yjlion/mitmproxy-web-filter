@@ -127,7 +127,7 @@ Two independent processes share the `policies/` directory on disk:
 
 | File | Hook | Purpose |
 |---|---|---|
-| `management_access.py` | `request` | **Runs first.** Redirect pseudo-domain to management UI; mark management traffic as allowed+passthrough |
+| `management_access.py` | `request` / `dns_request` | **Runs first.** Answer pseudo-domain DNS queries with the box IP; redirect pseudo-domain to management UI; mark management traffic as allowed+passthrough |
 | `policy_router.py` | `request` | Attach policy to flow (MAC → IP → CIDR → catch-all); aggregate ignore_hosts |
 | `mitm_control.py` | `request` | Mark passthrough for include-mode sites + UA rules |
 | `url_filter.py` | `request` | Block/allow URLs and domains; check categories |
@@ -287,6 +287,7 @@ secret_key          str         HMAC key for session tokens (auto-generated)
 pac_direct_hosts    list[str]   Hosts to go DIRECT in PAC (wildcard OK)
 pac_direct_ips      list[str]   IPv4/CIDR ranges or IPv6 addresses to go DIRECT in PAC
 mgmt_hostname       str         Pseudo-domain the proxy redirects to the management UI (default "web.filter")
+mgmt_hostname_ip    str         IPv4 the proxy answers mgmt_hostname DNS queries with (blank = auto-detect primary IPv4); needed so the pseudo-domain resolves in dns-mode / transparent / WireGuard deployments
 ```
 
 ## Test Suite

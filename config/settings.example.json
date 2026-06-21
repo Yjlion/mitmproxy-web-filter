@@ -16,5 +16,6 @@
   "password_hash": "",
   "secret_key": "",
   "pac_direct_ips": [],
-  "mgmt_hostname": "web.filter"
+  "mgmt_hostname": "web.filter",
+  "mgmt_hostname_ip": ""
 }

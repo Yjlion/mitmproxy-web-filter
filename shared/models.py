@@ -238,6 +238,11 @@ class GlobalSettings(BaseModel):
     pac_direct_ips: list[str] = Field(default_factory=list)
     # Pseudo-domain that the management_access addon redirects to the real UI.
     mgmt_hostname: str = "web.filter"
+    # IPv4 address the proxy answers mgmt_hostname DNS queries with (so the
+    # pseudo-domain resolves for clients that use the box as their DNS server,
+    # e.g. transparent / WireGuard / dns-mode deployments). Blank = auto-detect
+    # the box's primary outbound IPv4.
+    mgmt_hostname_ip: str = ""
     # Upstream (parent) proxy. When set, regular-mode listeners chain through it
     # (mitmproxy "upstream" mode). Form: scheme://host:port, e.g.
     # "http://proxy.corp:3128". upstream_auth is optional "user:pass".
