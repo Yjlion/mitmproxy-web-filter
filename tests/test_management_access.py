@@ -75,6 +75,18 @@ class TestPseudoDomainRedirect:
         loc = flow.response.headers["Location"]
         assert loc == "http://10.0.0.1:8000/"
 
+    def test_redirect_gates_flow_against_downstream_addons(self):
+        """The redirect must mark the flow allowed+passthrough. mitmproxy runs
+        every addon's request hook even after a response is set, so without
+        these gates doh_filter/url_filter would re-process the pseudo-domain
+        and overwrite the 302 with a block page."""
+        addon = _addon_with_settings(mgmt_hostname="web.filter", mgmt_port=8000)
+        flow = _make_flow("web.filter", 80, proxy_sockname=("10.0.0.1", 8080))
+        addon.request(flow)
+        assert flow.response.status_code == 302
+        assert flow.metadata.get("url_allowed") is True
+        assert flow.metadata.get("mitm_passthrough") is True
+
     def test_pseudo_domain_case_insensitive(self):
         addon = _addon_with_settings(mgmt_hostname="web.filter", mgmt_port=8000)
         flow = _make_flow("WEB.FILTER", 80, proxy_sockname=("10.0.0.1", 8080))

@@ -160,6 +160,13 @@ class ManagementAccess:
             flow.response = http.Response.make(
                 302, b"", {"Location": location, "Content-Type": "text/plain"}
             )
+            # Gate the flow so no downstream addon re-processes it. mitmproxy
+            # still runs every addon's request hook even after a response is
+            # set, so without these flags doh_filter/url_filter would look up
+            # the (non-resolvable) pseudo-domain and overwrite the 302 with a
+            # block page.
+            flow.metadata["url_allowed"] = True
+            flow.metadata["mitm_passthrough"] = True
             return
 
         # --- 2. Management server passthrough ---
