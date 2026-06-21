@@ -307,6 +307,7 @@ def _serve_pac(request: Request) -> Response:
         _pac_proxy_host(request, settings),
         settings.primary_proxy_port,
         settings.pac_direct_hosts,
+        settings.pac_direct_ips,
     )
     return Response(content=body, media_type="application/x-ns-proxy-autoconfig")
 

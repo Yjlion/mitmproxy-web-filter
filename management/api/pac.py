@@ -7,10 +7,16 @@ the proxy. The proxy is returned with no DIRECT fallback so traffic fails
 closed (stays filtered) if the proxy is unreachable.
 """
 from __future__ import annotations
+import ipaddress
 import json
 
 
-def render_pac(proxy_host: str, proxy_port: int, direct_hosts: list[str] | None = None) -> str:
+def render_pac(
+    proxy_host: str,
+    proxy_port: int,
+    direct_hosts: list[str] | None = None,
+    direct_ips: list[str] | None = None,
+) -> str:
     proxy = json.dumps(f"PROXY {proxy_host}:{proxy_port}")
 
     direct_clauses = []
@@ -33,6 +39,50 @@ def render_pac(proxy_host: str, proxy_port: int, direct_hosts: list[str] | None 
             f"  if ({joined}) {{\n    return \"DIRECT\";\n  }}\n"
         )
 
+    # Build isInNet / shExpMatch clauses for user-configured direct IPs/CIDRs.
+    # IPv4 plain/CIDR → isInNet() inside the IPv4-literal guard block.
+    # IPv6 → shExpMatch exact fallback (PAC isInNet is IPv4-only).
+    ip_v4_clauses: list[str] = []
+    ip_v6_clauses: list[str] = []
+    for raw in direct_ips or []:
+        entry = (raw or "").strip()
+        if not entry:
+            continue
+        try:
+            net = ipaddress.ip_network(entry, strict=False)
+        except ValueError:
+            continue  # skip unparseable entries silently
+        if net.version == 4:
+            network_addr = str(net.network_address)
+            netmask = str(net.netmask)
+            ip_v4_clauses.append(
+                f"isInNet(host, {json.dumps(network_addr)}, {json.dumps(netmask)})"
+            )
+        else:
+            # IPv6: PAC has no isInNet6; emit an exact shExpMatch fallback.
+            # For a CIDR we only match the network address string exactly.
+            if "/" in entry:
+                exact = str(net.network_address)
+            else:
+                exact = entry
+            ip_v6_clauses.append(f"shExpMatch(host, {json.dumps(exact)})")
+
+    user_direct_ipv4 = ""
+    if ip_v4_clauses:
+        joined = " ||\n        ".join(ip_v4_clauses)
+        user_direct_ipv4 = (
+            "\n    // User-configured direct IPs / CIDRs.\n"
+            f"    if ({joined}) {{\n      return \"DIRECT\";\n    }}\n"
+        )
+
+    user_direct_ipv6 = ""
+    if ip_v6_clauses:
+        joined = " ||\n      ".join(ip_v6_clauses)
+        user_direct_ipv6 = (
+            "\n  // User-configured direct IPv6 addresses.\n"
+            f"  if ({joined}) {{\n    return \"DIRECT\";\n  }}\n"
+        )
+
     return f"""function FindProxyForURL(url, host) {{
   host = host.toLowerCase();
 
@@ -51,9 +101,9 @@ def render_pac(proxy_host: str, proxy_port: int, direct_hosts: list[str] | None 
         isInNet(host, "192.168.0.0", "255.255.0.0") ||
         isInNet(host, "169.254.0.0", "255.255.0.0")) {{
       return "DIRECT";
-    }}
+    }}{user_direct_ipv4}
   }}
-{user_direct}
+{user_direct_ipv6}{user_direct}
   return {proxy};
 }}
 """
