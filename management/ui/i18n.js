@@ -323,6 +323,13 @@
       "ed.saveFailed": "Save failed",
       "ed.netErr": "Network error: ",
       "ed.ipInvalid": '"{v}" is not a valid IP address or CIDR range',
+      "ed.sourceMacs": "Source MAC Addresses",
+      "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — press Enter",
+      "ed.macInvalid": '"{v}" is not a valid MAC address',
+      "ed.scanNetwork": "Scan network",
+      "ed.macSameSegmentNote": "Matched ahead of IP rules, so a policy follows a device across IP changes. Only devices on the same network segment as the proxy can be matched by MAC.",
+      "ed.macScanEmpty": "No devices found in the proxy's neighbor table.",
+      "ed.macScanError": "Could not scan the network.",
     },
   };
 
@@ -565,6 +572,13 @@
     "ed.saveFailed": "השמירה נכשלה",
     "ed.netErr": "שגיאת רשת: ",
     "ed.ipInvalid": '"{v}" אינה כתובת IP או טווח CIDR תקין',
+    "ed.sourceMacs": "כתובות MAC מקור",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — הקש Enter",
+    "ed.macInvalid": '"{v}" אינה כתובת MAC תקינה',
+    "ed.scanNetwork": "סרוק רשת",
+    "ed.macSameSegmentNote": "מותאם לפני כללי IP, כך שמדיניות עוקבת אחר מכשיר גם כשכתובת ה‑IP משתנה. רק מכשירים באותו מקטע רשת כמו הפרוקסי ניתנים להתאמה לפי MAC.",
+    "ed.macScanEmpty": "לא נמצאו מכשירים בטבלת השכנים של הפרוקסי.",
+    "ed.macScanError": "לא ניתן לסרוק את הרשת.",
   };
 
   I18N.yi = {
@@ -803,6 +817,13 @@
     "ed.saveFailed": "היטן דורכגעפֿאַלן",
     "ed.netErr": "נעץ־טעות: ",
     "ed.ipInvalid": '"{v}" איז נישט אַ גילטיקע IP־אַדרעס אָדער CIDR־תחום',
+    "ed.sourceMacs": "מקור MAC־אַדרעסן",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — דריק Enter",
+    "ed.macInvalid": '"{v}" איז נישט אַ גילטיקע MAC־אַדרעס',
+    "ed.scanNetwork": "סקאַנירן נעץ",
+    "ed.macSameSegmentNote": "געמאַטשט פֿאַר IP־כללים, אַזוי אַ פּאָליסי גייט נאָך אַ מיטל אַפֿילו ווען די IP ענדערט זיך. נאָר מיטלען אויף דעם זעלבן נעץ־סעגמענט ווי דער פּראָקסי קענען זיין געמאַטשט לויט MAC.",
+    "ed.macScanEmpty": "קיין מיטלען נישט געפֿונען אין דעם פּראָקסיס שכן־טאַבעלע.",
+    "ed.macScanError": "מע האָט נישט געקענט סקאַנירן די נעץ.",
   };
 
   I18N.es = {
@@ -1041,6 +1062,13 @@
     "ed.saveFailed": "Error al guardar",
     "ed.netErr": "Error de red: ",
     "ed.ipInvalid": '"{v}" no es una dirección IP o rango CIDR válido',
+    "ed.sourceMacs": "Direcciones MAC de origen",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — pulsa Enter",
+    "ed.macInvalid": '"{v}" no es una dirección MAC válida',
+    "ed.scanNetwork": "Escanear red",
+    "ed.macSameSegmentNote": "Se aplica antes que las reglas de IP, de modo que la política sigue al dispositivo aunque cambie su IP. Solo se pueden emparejar por MAC los dispositivos del mismo segmento de red que el proxy.",
+    "ed.macScanEmpty": "No se encontraron dispositivos en la tabla de vecinos del proxy.",
+    "ed.macScanError": "No se pudo escanear la red.",
   };
 
   I18N.fr = {
@@ -1279,6 +1307,13 @@
     "ed.saveFailed": "Échec de l'enregistrement",
     "ed.netErr": "Erreur réseau : ",
     "ed.ipInvalid": '« {v} » n\'est pas une adresse IP ou une plage CIDR valide',
+    "ed.sourceMacs": "Adresses MAC sources",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — appuyez sur Entrée",
+    "ed.macInvalid": '« {v} » n\'est pas une adresse MAC valide',
+    "ed.scanNetwork": "Analyser le réseau",
+    "ed.macSameSegmentNote": "Appliquée avant les règles IP, de sorte qu\'une politique suit un appareil même si son IP change. Seuls les appareils du même segment réseau que le proxy peuvent être identifiés par MAC.",
+    "ed.macScanEmpty": "Aucun appareil trouvé dans la table de voisinage du proxy.",
+    "ed.macScanError": "Impossible d\'analyser le réseau.",
   };
 
   I18N.de = {
@@ -1517,6 +1552,13 @@
     "ed.saveFailed": "Speichern fehlgeschlagen",
     "ed.netErr": "Netzwerkfehler: ",
     "ed.ipInvalid": '„{v}“ ist keine gültige IP-Adresse oder kein gültiger CIDR-Bereich',
+    "ed.sourceMacs": "Quell-MAC-Adressen",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — Enter drücken",
+    "ed.macInvalid": '„{v}“ ist keine gültige MAC-Adresse',
+    "ed.scanNetwork": "Netzwerk scannen",
+    "ed.macSameSegmentNote": "Wird vor IP-Regeln angewendet, sodass eine Richtlinie einem Gerät auch bei IP-Wechsel folgt. Nur Geräte im selben Netzwerksegment wie der Proxy können per MAC zugeordnet werden.",
+    "ed.macScanEmpty": "Keine Geräte in der Nachbartabelle des Proxys gefunden.",
+    "ed.macScanError": "Netzwerk konnte nicht gescannt werden.",
   };
 
   I18N.zh = {
@@ -1755,6 +1797,13 @@
     "ed.saveFailed": "保存失败",
     "ed.netErr": "网络错误：",
     "ed.ipInvalid": '“{v}” 不是有效的 IP 地址或 CIDR 范围',
+    "ed.sourceMacs": "源 MAC 地址",
+    "ed.macFieldPh": "aa:bb:cc:dd:ee:ff — 按 Enter",
+    "ed.macInvalid": '“{v}” 不是有效的 MAC 地址',
+    "ed.scanNetwork": "扫描网络",
+    "ed.macSameSegmentNote": "优先于 IP 规则匹配，因此即使设备 IP 变化，策略仍会跟随该设备。只有与代理处于同一网段的设备才能按 MAC 匹配。",
+    "ed.macScanEmpty": "在代理的邻居表中未找到设备。",
+    "ed.macScanError": "无法扫描网络。",
   };
 
   // --- runtime ------------------------------------------------------------

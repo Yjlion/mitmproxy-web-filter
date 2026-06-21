@@ -10,6 +10,7 @@ def test_policy_defaults():
     p = Policy(name="test")
     assert p.name == "test"
     assert p.source_ips == []
+    assert p.source_macs == []
     assert not p.url_filter.enabled
     assert not p.doh.enabled
     assert p.image_classifier.action == "blur"
@@ -24,6 +25,18 @@ def test_policy_roundtrip():
     restored = Policy.model_validate_json(data)
     assert restored.name == "kids"
     assert restored.url_filter.block == ["bad.com", "*.adult.net"]
+
+
+def test_policy_source_macs_normalized():
+    # Mixed separators / case / Cisco dots all canonicalize; junk is dropped.
+    p = Policy(name="dev", source_macs=[
+        "AA-BB-CC-DD-EE-FF", "aabb.ccdd.eeff", "11:22:33:44:55:66", "not-a-mac",
+    ])
+    assert p.source_macs == [
+        "aa:bb:cc:dd:ee:ff", "aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66",
+    ]
+    restored = Policy.model_validate_json(p.model_dump_json())
+    assert restored.source_macs == p.source_macs
 
 
 def test_global_settings_defaults():

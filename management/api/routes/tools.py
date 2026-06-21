@@ -5,6 +5,7 @@ POST /api/tools/scan        — NSFW scan of an arbitrary URL.
 POST /api/tools/youtube     — Parse a YouTube URL and fetch oEmbed metadata.
 POST /api/tools/doh         — Query a DoH resolver for a domain.
 GET  /api/tools/public-ip   — Discover the server's public IP address.
+GET  /api/tools/neighbors   — List the host's ARP/NDP neighbor table (IP/MAC).
 """
 from __future__ import annotations
 
@@ -276,3 +277,19 @@ async def tools_public_ip():
             logger.debug("[tools] public-ip provider %s failed: %s", endpoint, exc)
 
     return JSONResponse({"error": "all public-ip providers failed"}, status_code=502)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/tools/neighbors
+# ---------------------------------------------------------------------------
+
+@router.get("/neighbors")
+def tools_neighbors():
+    """List the proxy host's live neighbor table (ARP/NDP) as IP/MAC pairs.
+
+    Powers the policy editor's "scan network" picker. Only devices on the same
+    L2 segment as the proxy appear here. Best-effort: returns an empty list on
+    any platform/tooling failure.
+    """
+    from shared import neighbors
+    return {"neighbors": neighbors.scan()}

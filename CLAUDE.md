@@ -69,7 +69,8 @@ mitmproxy-web-filter/
 ├── shared/
 │   ├── models.py                 # Pydantic v2 models (Policy, GlobalSettings, sub-configs)
 │   ├── logstore.py               # SQLite log store (WAL mode, retention, migration, export)
-│   └── categories.py             # CategoryStore: lazy-load, mtime-based cache, suffix match
+│   ├── categories.py             # CategoryStore: lazy-load, mtime-based cache, suffix match
+│   └── neighbors.py              # Cross-platform ARP/NDP reader; IP→MAC resolution (TTL cache)
 ├── tests/                        # pytest test suite (15+ files)
 ├── scripts/
 │   ├── run_proxy.py              # Python wrapper for mitmdump (used by start.sh)
@@ -109,7 +110,8 @@ Two independent processes share the `policies/` directory on disk:
 ## Key Design Decisions
 
 - **Policy = JSON file**: one file per policy in `policies/`. File name = `{safe_policy_name}.json`. The proxy watches for file changes and hot-reloads without restart.
-- **Source IP matching**: matched by specificity, most specific first — (1) exact single-IP match, (2) CIDR block match (longest/narrowest prefix wins), (3) catch-all (empty `source_ips`). Within a tier, policies are checked in alphabetical file order (first wins).
+- **Source matching**: matched by specificity, most specific first — (0) MAC match, (1) exact single-IP match, (2) CIDR block match (longest/narrowest prefix wins), (3) catch-all (empty `source_ips`). Within a tier, policies are checked in alphabetical file order (first wins).
+- **MAC matching**: a policy's `source_macs` are matched ahead of any IP rule, so a policy follows a device across DHCP IP changes. The MAC is resolved from the client IP via the OS neighbor table (`shared/neighbors.py` — ARP for IPv4, NDP for IPv6). **Only works for devices on the proxy's own L2 segment** (a device behind a router resolves to the router's MAC). Best-effort and fails open: if no MAC resolves, matching falls through to the IP tiers. `lookup()` caches the table for 30 s so it doesn't shell out per request.
 - **Addon execution order**: `policy_router` → `mitm_control` → `url_filter` → `doh_filter` → `safesearch` → `youtube_filter` → then response hooks: `text_classifier` → `image_classifier` → `request_logger`.
 - **Allow-list short-circuits everything**: a match in `url_filter.allow` sets `flow.metadata["url_allowed"] = True`; all downstream addons check this flag and skip the flow.
 - **MITM bypass**: done globally via `ctx.options.ignore_hosts` (regex), aggregated from all policies' `mitm.mode == "exclude"` lists. Per-source-IP TLS bypass is architecturally impossible in mitmproxy.
@@ -121,7 +123,7 @@ Two independent processes share the `policies/` directory on disk:
 
 | File | Hook | Purpose |
 |---|---|---|
-| `policy_router.py` | `request` | Attach policy to flow; aggregate ignore_hosts |
+| `policy_router.py` | `request` | Attach policy to flow (MAC → IP → CIDR → catch-all); aggregate ignore_hosts |
 | `mitm_control.py` | `request` | Mark passthrough for include-mode sites + UA rules |
 | `url_filter.py` | `request` | Block/allow URLs and domains; check categories |
 | `doh_filter.py` | `async request` | Intercept DOH queries, detect blocked domains |
@@ -138,6 +140,7 @@ A `Policy` object (defined in `shared/models.py`) has these top-level fields:
 ```
 name          str          Human-readable name
 source_ips    list[str]    CIDR ranges / exact IPs this policy applies to (empty = catch-all)
+source_macs   list[str]    MAC addresses (normalized aa:bb:cc:dd:ee:ff); matched ahead of source_ips, same-L2-segment only
 mitm          MitmConfig
 url_filter    UrlFilterConfig
 doh           DohConfig

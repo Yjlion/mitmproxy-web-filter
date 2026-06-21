@@ -11,6 +11,7 @@ from mitmproxy import ctx, http
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from shared.models import Policy, GlobalSettings
+from shared import neighbors
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ def _client_addrs(client_ip: str):
 def get_policy(client_ip: str) -> Policy | None:
     """Match a client to a policy by specificity, most specific first:
 
+      0. MAC match (resolved from the client IP via the OS neighbor table).
       1. Exact single-IP match.
       2. CIDR block match (the narrowest matching block wins — i.e. the one
          with the longest prefix; ties broken by file sort order).
@@ -70,6 +72,16 @@ def get_policy(client_ip: str) -> Policy | None:
     addrs = _client_addrs(client_ip)
     if not addrs:
         return None
+
+    # Tier 0: MAC match — the most stable identifier (survives DHCP IP changes).
+    # Best-effort: only resolves for devices on the proxy's own L2 segment;
+    # otherwise lookup() returns None and we fall through to IP matching.
+    if any(policy.source_macs for policy in _policies):
+        mac = neighbors.lookup(client_ip)
+        if mac:
+            for policy in _policies:
+                if mac in policy.source_macs:
+                    return policy
 
     # Tier 1: exact single-IP match.
     for policy in _policies:

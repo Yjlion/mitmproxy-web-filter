@@ -183,6 +183,10 @@ class BlockPageConfig(BaseModel):
 class Policy(BaseModel):
     name: str
     source_ips: list[str] = Field(default_factory=list)
+    # MAC addresses (resolved from the client IP via the OS neighbor table).
+    # Matched ahead of source_ips so a policy follows a device across DHCP IP
+    # changes. Only works for devices on the proxy's own L2 segment.
+    source_macs: list[str] = Field(default_factory=list)
     doh: DohConfig = Field(default_factory=DohConfig)
     text_classifier: TextClassifierConfig = Field(default_factory=TextClassifierConfig)
     image_classifier: ImageClassifierConfig = Field(default_factory=ImageClassifierConfig)
@@ -191,6 +195,14 @@ class Policy(BaseModel):
     mitm: MitmConfig = Field(default_factory=MitmConfig)
     url_filter: UrlFilterConfig = Field(default_factory=UrlFilterConfig)
     block_page: BlockPageConfig = Field(default_factory=BlockPageConfig)
+
+    @field_validator("source_macs")
+    @classmethod
+    def _normalize_macs(cls, v: list[str]) -> list[str]:
+        # Canonicalize to lowercase colon form and drop anything unparseable,
+        # so stored/compared MACs are always case- and separator-insensitive.
+        from shared.neighbors import normalize_mac
+        return [m for m in (normalize_mac(x) for x in v) if m]
 
 
 class GlobalSettings(BaseModel):
