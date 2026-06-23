@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from proxy.addons.management_access import ManagementAccess
-from proxy.addons.proxy_auth import ProxyAuth
+from proxy.addons.proxy_auth import ProxyAuthGate
 from proxy.addons.policy_router import PolicyRouter
 from proxy.addons.mitm_control import MitmControl
 from proxy.addons.url_filter import UrlFilter
@@ -17,7 +17,7 @@ from proxy.addons.request_logger import RequestLogger
 
 addons = [
     ManagementAccess(),  # first: always allow/redirect management traffic
-    ProxyAuth(),         # second: enforce proxy credentials before any policy/filtering
+    ProxyAuthGate(),     # second: enforce proxy credentials before any policy/filtering
     PolicyRouter(),
     MitmControl(),
     UrlFilter(),

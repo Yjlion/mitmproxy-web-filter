@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from proxy.addons.proxy_auth import ProxyAuth, verify_password, _parse_basic, _make_407
+from proxy.addons.proxy_auth import ProxyAuthGate, verify_password, _parse_basic, _make_407
 from management.api import auth as mgmt_auth
 from shared.models import GlobalSettings
 
@@ -83,7 +83,7 @@ class TestProxyAuthDisabled:
     def setup_method(self):
         import proxy.addons.proxy_auth as mod
         mod._settings = _make_settings(proxy_auth_enabled=False)
-        self.addon = ProxyAuth()
+        self.addon = ProxyAuthGate()
 
     def test_connect_passes_through(self):
         flow = _Flow()
@@ -110,7 +110,7 @@ class TestProxyAuthEnabled:
             proxy_auth_username="alice",
             proxy_auth_password_hash=ph,
         )
-        self.addon = ProxyAuth()
+        self.addon = ProxyAuthGate()
 
     def test_connect_no_credentials_returns_407(self):
         flow = _Flow()
@@ -189,7 +189,7 @@ class TestProxyAuthEnabled:
 
         class _Client:
             id = "conn-1"
-        self.addon.clientdisconnect(_Client())
+        self.addon.client_disconnected(_Client())
         assert "conn-1" not in self.addon._authed_conns
 
 

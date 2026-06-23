@@ -88,7 +88,7 @@ def _make_407() -> http.Response:
     )
 
 
-class ProxyAuth:
+class ProxyAuthGate:
     def __init__(self) -> None:
         # Connection IDs that have been authenticated at the CONNECT stage.
         # Inner HTTP requests through those tunnels are implicitly authorized.
@@ -144,5 +144,5 @@ class ProxyAuth:
         if not self._valid(flow):
             flow.response = _make_407()
 
-    def clientdisconnect(self, client: connection.Client) -> None:
+    def client_disconnected(self, client: connection.Client) -> None:
         self._authed_conns.discard(client.id)
