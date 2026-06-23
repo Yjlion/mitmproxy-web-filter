@@ -248,6 +248,12 @@ class GlobalSettings(BaseModel):
     # "http://proxy.corp:3128". upstream_auth is optional "user:pass".
     upstream_proxy: str = ""
     upstream_auth: str = ""
+    # Proxy authentication — require clients to present Basic credentials before
+    # using the proxy. Stored as PBKDF2-SHA256 (same scheme as password_hash).
+    # Covers HTTP proxy requests and HTTPS CONNECT tunnels; not SOCKS5.
+    proxy_auth_enabled: bool = False
+    proxy_auth_username: str = ""
+    proxy_auth_password_hash: str = ""  # never sent to the browser
 
     @model_validator(mode="before")
     @classmethod

@@ -13,7 +13,7 @@ _PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 _SETTINGS_PATH = _PROJECT_ROOT / "config" / "settings.json"
 
 # Secret fields never sent to the browser.
-_SECRET_FIELDS = ("password_hash", "secret_key")
+_SECRET_FIELDS = ("password_hash", "secret_key", "proxy_auth_password_hash")
 
 
 def _load() -> GlobalSettings:
@@ -32,6 +32,7 @@ def _sanitized(s: GlobalSettings) -> dict:
     for f in _SECRET_FIELDS:
         d.pop(f, None)
     d["has_password"] = bool(s.password_hash)
+    d["has_proxy_auth"] = bool(s.proxy_auth_password_hash)
     return d
 
 
@@ -44,8 +45,9 @@ def get_settings() -> dict:
 def update_settings(payload: dict = Body(...)) -> dict:
     current = _load()
     new_password = payload.pop("new_password", None)
+    new_proxy_auth_password = payload.pop("new_proxy_auth_password", None)
     # Never trust client-supplied secrets / derived fields.
-    for f in (*_SECRET_FIELDS, "has_password"):
+    for f in (*_SECRET_FIELDS, "has_password", "has_proxy_auth"):
         payload.pop(f, None)
 
     data = current.model_dump()
@@ -54,14 +56,26 @@ def update_settings(payload: dict = Body(...)) -> dict:
     # Preserve server-managed secrets across updates.
     s.password_hash = current.password_hash
     s.secret_key = current.secret_key
+    s.proxy_auth_password_hash = current.proxy_auth_password_hash
 
     if new_password:
         s.password_hash = auth.hash_password(new_password)
         if not s.secret_key:
             s.secret_key = auth.new_secret()
 
+    if new_proxy_auth_password is not None:
+        s.proxy_auth_password_hash = (
+            auth.hash_password(new_proxy_auth_password) if new_proxy_auth_password else ""
+        )
+
     if s.auth_enabled and not s.password_hash:
         raise HTTPException(status_code=400, detail="Set a password before enabling authentication.")
+
+    if s.proxy_auth_enabled and not s.proxy_auth_password_hash:
+        raise HTTPException(
+            status_code=400,
+            detail="Set a proxy auth password before enabling proxy authentication.",
+        )
 
     _save(s)
     return _sanitized(s)

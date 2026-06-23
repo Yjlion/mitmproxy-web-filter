@@ -303,6 +303,34 @@
           </div>
         </div>
 
+        <!-- Proxy Authentication -->
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Proxy Authentication</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Require clients to present a username and password before they can use the proxy (HTTP Basic, RFC 7235). Applies to HTTP proxy requests and HTTPS CONNECT tunnels.</p>
+          </div>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 accent-blue-600" x-model="settings.proxy_auth_enabled" />
+            <span class="text-sm text-gray-700">Require credentials to use the proxy</span>
+          </label>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1">Username</label>
+            <input type="text" x-model="settings.proxy_auth_username" placeholder="proxyuser"
+                   autocomplete="off" spellcheck="false"
+                   class="w-full sm:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-700 block mb-1">
+              <span x-text="settings.has_proxy_auth ? 'Change proxy password' : 'Set proxy password'"></span>
+              <span x-show="settings.has_proxy_auth" class="text-green-600"> · a password is currently set</span>
+            </label>
+            <input type="password" x-model="newProxyAuthPassword" autocomplete="new-password"
+                   :placeholder="settings.has_proxy_auth ? 'Leave blank to keep current password' : 'Enter password'"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Password is stored salted + hashed (PBKDF2). Credentials travel over the network as Base64 (HTTP Basic) — use on a trusted LAN or behind HTTPS/VPN.</p>
+          </div>
+        </div>
+
         <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 mt-4 space-y-5">
           <div>
             <h2 class="text-sm font-semibold text-gray-900 mb-1" data-i18n="set.caCert">CA Certificate</h2>
@@ -348,9 +376,10 @@
   <script>
     function settingsPage() {
       return {
-        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], pac_direct_ips: [], mgmt_hostname: 'web.filter', upstream_proxy: '', upstream_auth: '', ui_language: 'en' },
+        settings: { proxy_listen: ['0.0.0.0:8080'], mgmt_host: '0.0.0.0', mgmt_port: 8000, cert_dir: './certs', policies_dir: './policies', logs_dir: './logs', categories_dir: './categories', log_blocks: true, log_requests: true, log_retention_days: 30, default_policy: null, auth_enabled: false, has_password: false, pac_proxy_host: '', pac_direct_hosts: [], pac_direct_ips: [], mgmt_hostname: 'web.filter', upstream_proxy: '', upstream_auth: '', ui_language: 'en', proxy_auth_enabled: false, proxy_auth_username: '', has_proxy_auth: false },
         status: { proxy_port: null },
         newPassword: '',
+        newProxyAuthPassword: '',
         alert: '',
         alertType: 'success',
         wg: { enabled: false },
@@ -462,6 +491,7 @@
           if (Array.isArray(payload.pac_direct_ips))
             payload.pac_direct_ips = payload.pac_direct_ips.map(h => (h || '').trim()).filter(Boolean);
           if (this.newPassword) payload.new_password = this.newPassword;
+          if (this.newProxyAuthPassword !== '') payload.new_proxy_auth_password = this.newProxyAuthPassword;
           try {
             const res = await fetch('/api/settings', {
               method: 'PUT',
@@ -472,6 +502,7 @@
             if (res.ok) {
               this.settings = body;
               this.newPassword = '';
+              this.newProxyAuthPassword = '';
               this.alert = window.wfT('set.saved');
               this.alertType = 'success';
             } else {

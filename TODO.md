@@ -50,6 +50,36 @@ later; nothing here is committed to yet.
     text-only vs also scan embedded images; run under a chosen policy's
     thresholds vs fixed defaults; SSRF surface (admin-only, auth-gated).
 
+## 🔴 Filtering coverage gaps (close the bypasses)
+
+- [ ] **10. QUIC / HTTP3 leak** — Chrome speaks QUIC (UDP/443) to Google and
+  YouTube, which sidesteps an HTTP proxy entirely and quietly defeats YouTube
+  filtering and safesearch. Mitigate by stripping the `Alt-Svc` response header
+  to force fallback to TCP/TLS (cheap, addon-side), and/or document a firewall
+  rule blocking outbound UDP/443. Without this, YouTube filtering is leaky on
+  Chrome. _~Low (Alt-Svc strip) / docs._
+  - Touches: a small response addon (or extend `request_logger`/a new
+    `quic_block.py`), README deployment notes.
+
+- [ ] **11. SNI-based blocking for non-MITM'd hosts** — hosts in
+  `mitm.mode == "exclude"` currently can't be filtered at all (TLS not
+  decrypted). Reading the TLS ClientHello SNI lets us still block by domain
+  without decrypting, closing the "bypass TLS ⇒ bypass filter" hole. _~Medium._
+  - Touches: a TLS-layer hook (`tls_clienthello`) in a new addon; checks the
+    matched policy's block-list/categories against the SNI host.
+
+## 🟡 Coverage & operational additions
+
+- [ ] **12. More safesearch / restricted-mode targets** — YouTube Restricted
+  Mode (inject `YouTube-Restrict: Strict` header), Bing/DuckDuckGo strict
+  variants, and forcing SafeSearch on image-CDN hosts. Small, high-payoff
+  additions to `proxy/addons/safesearch.py` + tests. _~Low._
+
+- [ ] **13. Config backup & restore** — one-click export/import of all
+  `policies/*.json` + `config/settings.json` as a single bundle. Generalizes the
+  existing CA export/import in `management/api/routes/certs.py`. Makes migration
+  and disaster-recovery trivial. _~Low–medium._
+
 ## 🔵 Lower effort, narrower scope
 
 - [ ] **7. Ad/tracker + malware blocking category** — reuse the existing
