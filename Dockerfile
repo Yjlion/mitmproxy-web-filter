@@ -12,6 +12,11 @@ RUN apt-get update \
         libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Prefer IPv4 over IPv6 when both are available. Hosts with --network host and
+# a broken IPv6 stack (RA address but no upstream routing) get ENETUNREACH on
+# every dual-stack upstream connection otherwise, producing 502 Bad Gateway.
+RUN printf 'precedence ::ffff:0:0/96  100\n' >> /etc/gai.conf
+
 WORKDIR /app
 
 # Install Python dependencies first so the layer is cached across code changes.
