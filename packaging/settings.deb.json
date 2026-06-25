@@ -1,0 +1,12 @@
+{
+  "proxy_listen": ["0.0.0.0:8080"],
+  "mgmt_host": "0.0.0.0",
+  "mgmt_port": 8000,
+  "cert_dir": "/var/lib/webfilter-proxy/certs",
+  "policies_dir": "/var/lib/webfilter-proxy/policies",
+  "categories_dir": "/opt/webfilter-proxy/categories",
+  "logs_dir": "/var/lib/webfilter-proxy/logs",
+  "log_blocks": true,
+  "log_requests": true,
+  "log_retention_days": 30
+}

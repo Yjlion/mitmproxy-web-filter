@@ -128,6 +128,99 @@ class TestPerEngineBlocking:
         assert f.response is not None
 
 
+class TestYouTubeRestrictedMode:
+    def _flow(self, url):
+        from urllib.parse import urlparse
+
+        class _Req:
+            def __init__(self, url):
+                p = urlparse(url)
+                self.url = url
+                self.pretty_url = url
+                self.pretty_host = p.hostname or ""
+                self.headers = {}
+
+        class _Flow:
+            def __init__(self, url):
+                self.request = _Req(url)
+                self.response = None
+                self.metadata = {}
+
+        return _Flow(url)
+
+    def _policy(self):
+        from shared.models import Policy
+        p = Policy(name="t")
+        p.safesearch.enabled = True
+        return p
+
+    def test_injects_restrict_header_on_youtube(self):
+        from proxy.addons.safesearch import SafeSearch
+        pol = self._policy()
+        f = self._flow("https://www.youtube.com/watch?v=abc")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert f.request.headers.get("YouTube-Restrict") == "Strict"
+        assert f.response is None  # not blocked, just modified
+
+    def test_injects_header_on_music_youtube(self):
+        from proxy.addons.safesearch import SafeSearch
+        pol = self._policy()
+        f = self._flow("https://music.youtube.com/")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert f.request.headers.get("YouTube-Restrict") == "Strict"
+
+    def test_no_header_when_youtube_engine_disabled(self):
+        from proxy.addons.safesearch import SafeSearch
+        from shared.models import Policy, SafeSearchEngineConfig as Cfg
+        pol = Policy(name="t")
+        pol.safesearch.enabled = True
+        pol.safesearch.engines = {"youtube": Cfg(enabled=False)}
+        f = self._flow("https://www.youtube.com/feed/subscriptions")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert "YouTube-Restrict" not in f.request.headers
+
+    def test_ddg_gg_gets_safe_param(self):
+        from proxy.addons.safesearch import SafeSearch
+        pol = self._policy()
+        f = self._flow("https://ddg.gg/?q=test")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert "kp=1" in f.request.url
+
+    def test_image_cdn_blocked_when_images_tab_blocked(self):
+        from proxy.addons.safesearch import SafeSearch
+        from shared.models import Policy, SafeSearchEngineConfig as Cfg
+        pol = Policy(name="t")
+        pol.safesearch.enabled = True
+        pol.safesearch.engines = {"google": Cfg(block_images_tab=True)}
+        f = self._flow("https://encrypted-tbn0.gstatic.com/images?q=tbn:abc")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert f.response is not None  # blocked
+
+    def test_image_cdn_not_blocked_when_images_tab_allowed(self):
+        from proxy.addons.safesearch import SafeSearch
+        pol = self._policy()  # no block_images_tab
+        f = self._flow("https://encrypted-tbn0.gstatic.com/images?q=tbn:abc")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert f.response is None  # CDN passes through
+
+    def test_bing_image_cdn_blocked(self):
+        from proxy.addons.safesearch import SafeSearch
+        from shared.models import Policy, SafeSearchEngineConfig as Cfg
+        pol = Policy(name="t")
+        pol.safesearch.enabled = True
+        pol.safesearch.engines = {"bing": Cfg(block_images_tab=True)}
+        f = self._flow("https://th.bing.com/th/id/abc")
+        f.metadata["policy"] = pol
+        SafeSearch().request(f)
+        assert f.response is not None
+
+
 class TestPolicyRoutingIp:
     def test_cidr_match(self):
         from proxy.addons.policy_router import get_policy

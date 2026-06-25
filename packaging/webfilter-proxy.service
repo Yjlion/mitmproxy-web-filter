@@ -1,0 +1,23 @@
+[Unit]
+Description=WebFilter Proxy (mitmproxy filtering proxy)
+Documentation=https://github.com/Yjlion/mitmproxy-web-filter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=webfilter
+Group=webfilter
+WorkingDirectory=/opt/webfilter-proxy
+ExecStart=/opt/webfilter-proxy/scripts/deb-start-proxy.sh
+Restart=on-failure
+RestartSec=3
+# mitmproxy holds 2 fd per connection (client + upstream); raise the limit so
+# busy browsers don't exhaust the default 1024.
+LimitNOFILE=65536
+# Give children (mitmdump) time to flush on stop/restart.
+TimeoutStopSec=15
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

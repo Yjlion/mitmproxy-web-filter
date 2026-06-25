@@ -1,0 +1,18 @@
+[Unit]
+Description=WebFilter Proxy Management UI (uvicorn)
+Documentation=https://github.com/Yjlion/mitmproxy-web-filter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=webfilter
+Group=webfilter
+WorkingDirectory=/opt/webfilter-proxy
+ExecStart=/opt/webfilter-proxy/scripts/deb-start-mgmt.sh
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
