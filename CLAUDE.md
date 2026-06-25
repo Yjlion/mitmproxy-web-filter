@@ -51,7 +51,7 @@ mitmproxy-web-filter/
 │       ├── doh_filter.py         # DNS-over-HTTPS query interception
 │       ├── safesearch.py         # Search-engine safe-search URL rewriting
 │       ├── youtube_filter.py     # YouTube channel blocking (response-side)
-│       ├── text_classifier.py    # Adult-text detection (keyword + optional ML)
+│       ├── text_classifier.py    # Adult-text detection (keyword regex + required ML)
 │       ├── image_classifier.py   # NSFW image blur/block (NudeNet)
 │       └── request_logger.py     # Logs every request/response (runs last)
 ├── management/                   # FastAPI process (port 8000)
@@ -120,7 +120,7 @@ Two independent processes share the `policies/` directory on disk:
 - **Allow-list short-circuits everything**: a match in `url_filter.allow` sets `flow.metadata["url_allowed"] = True`; all downstream addons check this flag and skip the flow.
 - **MITM bypass**: done globally via `ctx.options.ignore_hosts` (regex), aggregated from all policies' `mitm.mode == "exclude"` lists. Per-source-IP TLS bypass is architecturally impossible in mitmproxy.
 - **MITM passthrough (filtering skip)**: `mitm_control` sets `flow.metadata["mitm_passthrough"]` for include-mode non-listed sites and for User-Agent rules (`mitm.ua_mode` / `mitm.user_agents`, case-insensitive substring match). This can't un-intercept TLS — the User-Agent header isn't visible until after interception — it only causes filtering addons to skip the flow.
-- **ML dependencies are optional**: `text_classifier` works without a model (keyword regex only); `image_classifier` gracefully skips if `nudenet` fails to import. ML model for text is at `models/text_classifier.joblib`.
+- **ML dependencies are required**: both `text_classifier` (scikit-learn) and `image_classifier` (NudeNet) depend on their ML packages being installed; they are not optional and are pulled in by `install.sh`. The text model is at `models/text_classifier.joblib`.
 - **IPv6 + IPv4-mapped IPv6**: `policy_router._client_addrs()` normalises `::ffff:192.168.x.x` to plain IPv4 so CIDR matching works transparently.
 
 ## Component Quick Reference
@@ -134,7 +134,7 @@ Two independent processes share the `policies/` directory on disk:
 | `doh_filter.py` | `async request` | Intercept DOH queries, detect blocked domains |
 | `safesearch.py` | `request` | Rewrite search URLs with safe-search parameters |
 | `youtube_filter.py` | `response` | Block/allow channels by rewriting player JSON |
-| `text_classifier.py` | `response` | Adult text detection (keyword regex + optional ML) |
+| `text_classifier.py` | `response` | Adult text detection (keyword regex + required ML) |
 | `image_classifier.py` | `response` | NSFW image detection → blur / checkerboard / block |
 | `request_logger.py` | `response` / `error` | Log every flow with final action; runs last |
 
@@ -264,7 +264,7 @@ Key behaviours:
 - Detects: `FEMALE_GENITALIA_EXPOSED`, `MALE_GENITALIA_EXPOSED`, `FEMALE_BREAST_EXPOSED`, `BUTTOCKS_EXPOSED`, `ANUS_EXPOSED`.
 - Actions: `blur` (Gaussian, radius ∝ image size), `checkerboard` placeholder, or `block` (transparent 1×1 GIF).
 - Skips images whose largest side is under `image_classifier.min_dimension` px (default 100) — favicons, icons, tracking pixels. Dimensions are read from the image header (PIL, no full decode); a 1 KB byte floor cheaply discards genuine pixels first. Gating on dimensions rather than byte size lets small-but-real thumbnails (e.g. Google image search, often ~2-8 KB) reach the detector.
-- Requires `nudenet` package; addon silently skips if import fails.
+- Requires the `nudenet` package — it is a mandatory dependency installed by `install.sh`.
 
 ## Settings Schema (GlobalSettings)
 
