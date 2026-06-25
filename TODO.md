@@ -80,6 +80,26 @@ later; nothing here is committed to yet.
   existing CA export/import in `management/api/routes/certs.py`. Makes migration
   and disaster-recovery trivial. _~Low–medium._
 
+## 📦 Packaging & deployment
+
+- [ ] **14. Debian package** — build a `.deb` for Debian/Ubuntu so the filter
+  installs as a proper system service (systemd units for the proxy + management
+  API, conffiles under `/etc`, data under `/var/lib`). Wraps up `install.sh`'s
+  work into `apt install` + `dpkg`. _~Medium._
+
+- [ ] **15. System tray icon** — optional tray applet to access/control the
+  proxy (start/stop, open the management UI, view status). Useful on desktop
+  installs; skippable on a headless server. _~Medium._
+
+- [ ] **16. Single-device mode** — launch with a limited portal: bind only to
+  localhost, show a single policy, and hide the multi-device/source-matching
+  UI. Targets the "just filter this one machine" use case. _~Medium._
+
+- [ ] **17. Traffic interceptor (transparent redirect)** — transparently
+  redirect outbound internet traffic to the proxy (e.g. nftables/iptables
+  REDIRECT or TPROXY + mitmproxy transparent mode) so clients need no manual
+  proxy/PAC configuration. _~Medium–high._
+
 ## 🔵 Lower effort, narrower scope
 
 - [ ] **7. Ad/tracker + malware blocking category** — reuse the existing
