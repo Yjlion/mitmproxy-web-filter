@@ -24,6 +24,9 @@ if [[ -z "$RAW_VERSION" ]]; then
     RAW_VERSION="$(cat "$VERSION_FILE" 2>/dev/null || echo "0.0.0")"
 fi
 VERSION="${RAW_VERSION#v}"   # strip leading 'v' if present
+# Debian version fields cannot contain '/'; replace with '-' so PR builds
+# (where github.ref_name is e.g. "13/merge") produce a valid version string.
+VERSION="${VERSION//\//-}"
 
 # ── Architecture ─────────────────────────────────────────────────────────────
 if command -v dpkg &>/dev/null; then
@@ -111,9 +114,9 @@ mkdir -p "$DEBIAN_DIR"
 INSTALLED_SIZE=$(du -sk "$STAGING" | cut -f1)
 
 sed \
-    -e "s/VERSION_PLACEHOLDER/$VERSION/" \
-    -e "s/ARCH_PLACEHOLDER/$ARCH/" \
-    -e "s/SIZE_PLACEHOLDER/$INSTALLED_SIZE/" \
+    -e "s|VERSION_PLACEHOLDER|$VERSION|" \
+    -e "s|ARCH_PLACEHOLDER|$ARCH|" \
+    -e "s|SIZE_PLACEHOLDER|$INSTALLED_SIZE|" \
     "$PROJECT_ROOT/packaging/debian/control" > "$DEBIAN_DIR/control"
 
 cp "$PROJECT_ROOT/packaging/debian/postinst" "$DEBIAN_DIR/postinst"
