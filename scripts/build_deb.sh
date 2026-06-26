@@ -49,6 +49,7 @@ echo "[build_deb] output: $DEB_OUT"
 
 # ── Staging area ─────────────────────────────────────────────────────────────
 STAGING="$(mktemp -d)"
+chmod 755 "$STAGING"   # mktemp creates with 700; dpkg-deb records this as './' in the archive
 trap 'rm -rf "$STAGING"' EXIT
 
 APPDIR="$STAGING/opt/webfilter-proxy"
@@ -80,7 +81,7 @@ find "$APPDIR" -name '__pycache__' -type d -prune -exec rm -rf {} + || true
 
 # ── Systemd units ─────────────────────────────────────────────────────────────
 echo "[build_deb] installing systemd units..."
-UNITDIR="$STAGING/lib/systemd/system"
+UNITDIR="$STAGING/usr/lib/systemd/system"
 mkdir -p "$UNITDIR"
 cp "$PROJECT_ROOT/packaging/webfilter-proxy.service" "$UNITDIR/"
 cp "$PROJECT_ROOT/packaging/webfilter-mgmt.service"  "$UNITDIR/"

@@ -155,8 +155,10 @@ jobs:
         run: |
           set -eux
           DEB="$(ls webfilter-proxy_*.deb)"
-          sudo dpkg -i "$DEB"
-          # Verify the bundled venv can import all required modules.
+          # apt handles dependencies (python3-venv, adduser) automatically;
+          # plain dpkg -i does not and will leave postinst without them.
+          sudo apt-get install -y "./$DEB"
+          # Verify the venv (built by postinst) can import all required modules.
           /opt/webfilter-proxy/venv/bin/python3 -c \
             "import mitmproxy, fastapi, uvicorn, httpx, dns, nudenet, PIL, bs4, multipart; print('deb imports OK')"
           sudo dpkg -r webfilter-proxy
