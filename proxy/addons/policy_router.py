@@ -68,7 +68,10 @@ def get_policy(client_ip: str) -> Policy | None:
          with the longest prefix; ties broken by file sort order).
       3. Catch-all: a policy with empty source_ips.
 
-    Within a tier, policies are considered in file sort order (first wins)."""
+    Within a tier, policies are considered in file sort order (first wins).
+    A policy with `schedule.enabled` is skipped when the current time falls
+    outside all its active_windows — matching falls through to the next
+    candidate in the same tier, or to lower tiers."""
     addrs = _client_addrs(client_ip)
     if not addrs:
         return None
@@ -80,11 +83,13 @@ def get_policy(client_ip: str) -> Policy | None:
         mac = neighbors.lookup(client_ip)
         if mac:
             for policy in _policies:
-                if mac in policy.source_macs:
+                if mac in policy.source_macs and policy.schedule.is_active_now():
                     return policy
 
     # Tier 1: exact single-IP match.
     for policy in _policies:
+        if not policy.schedule.is_active_now():
+            continue
         for src in policy.source_ips:
             if "/" in src:
                 continue
@@ -99,6 +104,8 @@ def get_policy(client_ip: str) -> Policy | None:
     best_policy: Policy | None = None
     best_prefixlen = -1
     for policy in _policies:
+        if not policy.schedule.is_active_now():
+            continue
         for src in policy.source_ips:
             if "/" not in src:
                 continue
@@ -115,7 +122,7 @@ def get_policy(client_ip: str) -> Policy | None:
 
     # Tier 3: catch-all (empty source_ips).
     for policy in _policies:
-        if not policy.source_ips:
+        if not policy.source_ips and policy.schedule.is_active_now():
             return policy
 
     return None

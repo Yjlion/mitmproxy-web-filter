@@ -8,6 +8,7 @@ from proxy.addons.proxy_auth import ProxyAuthGate
 from proxy.addons.policy_router import PolicyRouter
 from proxy.addons.mitm_control import MitmControl
 from proxy.addons.url_filter import UrlFilter
+from proxy.addons.quic_blocker import QuicBlocker
 from proxy.addons.doh_filter import DohFilter
 from proxy.addons.safesearch import SafeSearch
 from proxy.addons.youtube_filter import YouTubeFilter
@@ -21,6 +22,7 @@ addons = [
     PolicyRouter(),
     MitmControl(),
     UrlFilter(),
+    QuicBlocker(),
     DohFilter(),
     SafeSearch(),
     YouTubeFilter(),
