@@ -359,6 +359,27 @@
           </div>
         </div>
 
+        <!-- Configuration backup / restore -->
+        <div class="bg-card rounded-xl shadow-sm border border-gray-100 p-6 mt-4 space-y-5">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Configuration Backup</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Export all policies and settings as a single ZIP for migration or disaster-recovery. The CA bundle is exported separately above.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <a href="/api/backup"
+               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export configuration
+            </a>
+            <label class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Import configuration…
+              <input type="file" accept=".zip,application/zip" class="hidden" @change="importBackup($event)" />
+            </label>
+          </div>
+          <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">Importing overwrites all current policies and settings with those in the ZIP. Restart the proxy afterwards for settings changes to take full effect.</p>
+        </div>
+
         <!-- Single save bar — every section above writes the whole settings object -->
         <div class="sticky bottom-0 -mx-8 mt-6 px-8 py-3 bg-card/95 backdrop-blur border-t border-gray-200">
           <div x-show="alert" x-cloak class="mb-2 px-3 py-2 rounded-lg text-sm"
@@ -534,6 +555,30 @@
             }
           } catch (e) {
             this.alert = window.wfT('set.netErr');
+            this.alertType = 'error';
+          }
+          setTimeout(() => { this.alert = ''; }, 5000);
+        },
+
+        async importBackup(event) {
+          const file = event.target.files && event.target.files[0];
+          event.target.value = '';
+          if (!file) return;
+          const fd = new FormData();
+          fd.append('file', file);
+          try {
+            const res = await fetch('/api/backup', { method: 'POST', body: fd });
+            const body = await res.json().catch(() => ({}));
+            if (res.ok) {
+              const n = (body.restored_policies || []).length;
+              this.alert = `Restored: ${n} ${n === 1 ? 'policy' : 'policies'}${body.restored_settings ? ' + settings' : ''}.`;
+              this.alertType = 'success';
+            } else {
+              this.alert = body.detail || 'Import failed.';
+              this.alertType = 'error';
+            }
+          } catch (e) {
+            this.alert = 'Network error — import failed.';
             this.alertType = 'error';
           }
           setTimeout(() => { this.alert = ''; }, 5000);
