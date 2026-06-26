@@ -5,12 +5,10 @@ later; nothing here is committed to yet.
 
 ## 🟢 High value, low–medium effort (best starting points)
 
-- [ ] **1. Time-based scheduling** — add a `schedule` block to `Policy`
-  (e.g. block social media 21:00–07:00, internet off during school hours).
-  `policy_router` already runs per-request and hot-reloads; it just needs to
-  consult the clock when matching. _~Medium._
-  - Touches: `shared/models.py` (new `ScheduleConfig`), `proxy/addons/policy_router.py`,
-    policy editor UI, tests.
+- [x] **1. Time-based scheduling** — ✅ Implemented. `ScheduleConfig` + `TimeWindow`
+  in `shared/models.py`; `get_policy()` checks `is_active_now()` at every tier
+  so inactive policies fall through to the next match. Policy editor UI TBD.
+  - Touches: `shared/models.py`, `proxy/addons/policy_router.py`, `tests/test_schedule.py`.
 
 - [x] **2. Analytics dashboard** — ✅ Implemented. Aggregates `logs/requests.jsonl`
   and `logs/blocks.jsonl` into `management/ui/analytics.html` via `/api/analytics`:
@@ -52,14 +50,11 @@ later; nothing here is committed to yet.
 
 ## 🔴 Filtering coverage gaps (close the bypasses)
 
-- [ ] **10. QUIC / HTTP3 leak** — Chrome speaks QUIC (UDP/443) to Google and
-  YouTube, which sidesteps an HTTP proxy entirely and quietly defeats YouTube
-  filtering and safesearch. Mitigate by stripping the `Alt-Svc` response header
-  to force fallback to TCP/TLS (cheap, addon-side), and/or document a firewall
-  rule blocking outbound UDP/443. Without this, YouTube filtering is leaky on
-  Chrome. _~Low (Alt-Svc strip) / docs._
-  - Touches: a small response addon (or extend `request_logger`/a new
-    `quic_block.py`), README deployment notes.
+- [x] **10. QUIC / HTTP3 leak** — ✅ Implemented. `QuicBlocker` addon strips
+  `Alt-Svc` response headers when `policy.url_filter.block_quic = true`,
+  forcing Chrome back to TCP/TLS. Per-policy flag; skipped for allowed/passthrough flows.
+  - Touches: `proxy/addons/quic_blocker.py`, `proxy/main.py`,
+    `shared/models.py` (`UrlFilterConfig.block_quic`), `tests/test_quic_blocker.py`.
 
 - [ ] **11. SNI-based blocking for non-MITM'd hosts** — hosts in
   `mitm.mode == "exclude"` currently can't be filtered at all (TLS not

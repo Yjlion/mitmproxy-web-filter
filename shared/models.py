@@ -173,11 +173,67 @@ class UrlFilterConfig(BaseModel):
     #   whitelist — only domains in the selected categories are allowed
     mode: Literal["blacklist", "whitelist"] = "blacklist"
     categories: list[str] = Field(default_factory=list)
+    # Strip the Alt-Svc response header to prevent browsers from upgrading to
+    # HTTP/3 (QUIC, UDP/443). Without this Chrome will speak QUIC directly to
+    # Google/YouTube, bypassing the TCP/TLS proxy and defeating all filtering.
+    block_quic: bool = False
 
 
 class BlockPageConfig(BaseModel):
     template: str = "default"
     message: str = ""
+
+
+class TimeWindow(BaseModel):
+    """A recurring weekly time window. 0 = Monday … 6 = Sunday (ISO weekday - 1)."""
+    days: list[int] = Field(default_factory=lambda: list(range(7)))
+    start: str = "00:00"   # HH:MM in the server's local time
+    end: str = "23:59"     # HH:MM; end >= start within the same day
+
+    @field_validator("days")
+    @classmethod
+    def _validate_days(cls, v: list[int]) -> list[int]:
+        return [d % 7 for d in v if isinstance(d, int)]
+
+    @field_validator("start", "end")
+    @classmethod
+    def _validate_time(cls, v: str) -> str:
+        parts = v.split(":")
+        if len(parts) != 2 or not all(p.isdigit() for p in parts):
+            raise ValueError(f"time must be HH:MM, got {v!r}")
+        h, m = int(parts[0]), int(parts[1])
+        if not (0 <= h <= 23 and 0 <= m <= 59):
+            raise ValueError(f"time out of range: {v!r}")
+        return f"{h:02d}:{m:02d}"
+
+
+class ScheduleConfig(BaseModel):
+    """Controls when a policy is active.
+
+    When enabled, the policy only applies during the declared active_windows.
+    Outside those windows the policy is skipped and matching falls through to
+    the next applicable policy (or the catch-all).  When disabled (default)
+    the policy is always active.
+    """
+    enabled: bool = False
+    active_windows: list[TimeWindow] = Field(default_factory=list)
+
+    def is_active_now(self) -> bool:
+        """Return True if the current local time falls inside any active window."""
+        if not self.enabled or not self.active_windows:
+            return True
+        import datetime
+        now = datetime.datetime.now()
+        weekday = now.weekday()  # 0=Monday … 6=Sunday
+        hm = now.hour * 60 + now.minute
+        for w in self.active_windows:
+            if weekday not in w.days:
+                continue
+            sh, sm = (int(p) for p in w.start.split(":"))
+            eh, em = (int(p) for p in w.end.split(":"))
+            if sh * 60 + sm <= hm <= eh * 60 + em:
+                return True
+        return False
 
 
 class Policy(BaseModel):
@@ -187,6 +243,7 @@ class Policy(BaseModel):
     # Matched ahead of source_ips so a policy follows a device across DHCP IP
     # changes. Only works for devices on the proxy's own L2 segment.
     source_macs: list[str] = Field(default_factory=list)
+    schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)
     doh: DohConfig = Field(default_factory=DohConfig)
     text_classifier: TextClassifierConfig = Field(default_factory=TextClassifierConfig)
     image_classifier: ImageClassifierConfig = Field(default_factory=ImageClassifierConfig)
