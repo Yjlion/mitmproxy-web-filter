@@ -33,9 +33,11 @@ case "$1" in
     chown "$USER:$GROUP" "$LOGDIR"
     chmod 750 "$LOGDIR"
 
-    # Install Python dependencies into the bundled venv if not already present.
-    # This runs on first install and after an upgrade replaces requirements.txt.
-    if [ ! -f "$APPDIR/venv/bin/python3" ]; then
+    # Create (or recreate) the venv using the distro Python.
+    # Recreate if the interpreter is missing or broken (e.g. after a Python
+    # version upgrade where the old venv's symlink is now dangling).
+    if ! "$APPDIR/venv/bin/python3" -c "" 2>/dev/null; then
+      rm -rf "$APPDIR/venv"
       python3 -m venv "$APPDIR/venv"
     fi
     "$APPDIR/venv/bin/pip" install --quiet --upgrade pip

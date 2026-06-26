@@ -75,17 +75,8 @@ cp "$PROJECT_ROOT/packaging/deb-start-proxy.sh" "$APPDIR/scripts/deb-start-proxy
 cp "$PROJECT_ROOT/packaging/deb-start-mgmt.sh"  "$APPDIR/scripts/deb-start-mgmt.sh"
 chmod +x "$APPDIR/scripts/deb-start-proxy.sh" "$APPDIR/scripts/deb-start-mgmt.sh"
 
-# ── Python venv ───────────────────────────────────────────────────────────────
-echo "[build_deb] building bundled venv (this may take a few minutes)..."
-python3 -m venv "$APPDIR/venv"
-"$APPDIR/venv/bin/pip" install --upgrade pip --quiet
-"$APPDIR/venv/bin/pip" install -r "$APPDIR/requirements.txt" --quiet
-# Strip __pycache__ to keep the package size down.
-find "$APPDIR/venv" -name '__pycache__' -type d -prune -exec rm -rf {} + || true
-
-# Strip __pycache__ from the app code too.
-find "$APPDIR" -path "$APPDIR/venv" -prune -o -name '__pycache__' -type d -print \
-    | xargs -r rm -rf || true
+# Strip __pycache__ from the app code.
+find "$APPDIR" -name '__pycache__' -type d -prune -exec rm -rf {} + || true
 
 # ── Systemd units ─────────────────────────────────────────────────────────────
 echo "[build_deb] installing systemd units..."
