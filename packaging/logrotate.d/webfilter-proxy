@@ -1,0 +1,14 @@
+# WebFilter Proxy — logrotate config.
+# The proxy writes structured data to a SQLite DB (not flat log files), so
+# this config rotates only the uvicorn/mitmdump stderr captured by journald
+# if you redirect it to a file via StandardError=append: in the service unit.
+# Adjust the glob below if you add file-based logging.
+/var/log/webfilter-proxy/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 webfilter webfilter
+}

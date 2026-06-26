@@ -1,0 +1,23 @@
+Package: webfilter-proxy
+Version: VERSION_PLACEHOLDER
+Architecture: ARCH_PLACEHOLDER
+Maintainer: WebFilter Proxy Project <yjlion@gmail.com>
+Installed-Size: SIZE_PLACEHOLDER
+Depends: python3 (>= 3.10), python3-venv, adduser
+Recommends: logrotate
+Section: net
+Priority: optional
+Homepage: https://github.com/Yjlion/mitmproxy-web-filter
+Description: Transparent web filtering proxy with management UI
+ A mitmproxy-based web filter that runs as a system service on
+ Debian/Ubuntu. Features include:
+  - URL allow/block lists and site-category blocking
+  - Google/Bing/DuckDuckGo/YouTube SafeSearch and Restricted Mode
+  - YouTube channel allow/block lists
+  - DNS-over-HTTPS query interception
+  - NSFW image detection (NudeNet) and adult text classification
+  - Management web UI (FastAPI + Alpine.js) on port 8000
+  - Proxy Auto-Config (PAC/WPAD) generation
+ .
+ The proxy listens on port 8080 (configurable). Both the proxy and the
+ management UI run as the unprivileged 'webfilter' system user.

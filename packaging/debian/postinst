@@ -1,0 +1,68 @@
+#!/bin/sh
+set -e
+
+APPDIR=/opt/webfilter-proxy
+DATADIR=/var/lib/webfilter-proxy
+LOGDIR=/var/log/webfilter-proxy
+USER=webfilter
+GROUP=webfilter
+
+case "$1" in
+  configure)
+    # Create system user/group if they don't exist.
+    if ! getent group "$GROUP" > /dev/null 2>&1; then
+      addgroup --system "$GROUP"
+    fi
+    if ! getent passwd "$USER" > /dev/null 2>&1; then
+      adduser --system --ingroup "$GROUP" --home "$DATADIR" \
+              --no-create-home --shell /usr/sbin/nologin \
+              --gecos "WebFilter Proxy" "$USER"
+    fi
+
+    # Create data directories.
+    for d in "$DATADIR" "$DATADIR/certs" "$DATADIR/policies" \
+              "$DATADIR/logs" "$DATADIR/models"; do
+      mkdir -p "$d"
+      chown "$USER:$GROUP" "$d"
+      chmod 750 "$d"
+    done
+
+    # Create log directory (SQLite DB lives in DATADIR/logs, but a separate
+    # /var/log dir makes logrotate integration straightforward).
+    mkdir -p "$LOGDIR"
+    chown "$USER:$GROUP" "$LOGDIR"
+    chmod 750 "$LOGDIR"
+
+    # Create (or recreate) the venv using the distro Python.
+    # Recreate if the interpreter is missing or broken (e.g. after a Python
+    # version upgrade where the old venv's symlink is now dangling).
+    if ! "$APPDIR/venv/bin/python3" -c "" 2>/dev/null; then
+      rm -rf "$APPDIR/venv"
+      python3 -m venv "$APPDIR/venv"
+    fi
+    "$APPDIR/venv/bin/pip" install --quiet --upgrade pip
+    "$APPDIR/venv/bin/pip" install --quiet -r "$APPDIR/requirements.txt"
+
+    # Set ownership of the application directory.
+    chown -R "$USER:$GROUP" "$APPDIR/venv"
+    # Config file must be writable by the service (password hash is stored there).
+    chown "$USER:$GROUP" "$APPDIR/config/settings.json" 2>/dev/null || true
+
+    # Reload systemd and enable both services.
+    if command -v systemctl > /dev/null 2>&1 && systemctl is-system-running --quiet 2>/dev/null; then
+      systemctl daemon-reload
+      systemctl enable webfilter-proxy.service webfilter-mgmt.service
+      systemctl start webfilter-proxy.service webfilter-mgmt.service || true
+    fi
+    ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+  *)
+    echo "postinst called with unknown argument '$1'" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Resp
 from management.api.routes import policies, settings as settings_router, certs
 from management.api.routes import wireguard as wireguard_router
 from management.api.routes import tools as tools_router
+from management.api.routes import backup as backup_router
 from management.api import auth, pac
 from shared.models import GlobalSettings
 from shared.version import get_version
@@ -122,6 +123,7 @@ def logout():
 app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(settings_router.router, prefix="/api/settings", tags=["settings"])
 app.include_router(certs.router, prefix="/api/certs", tags=["certs"])
+app.include_router(backup_router.router, prefix="/api/backup", tags=["backup"])
 app.include_router(wireguard_router.router, prefix="/api/wireguard", tags=["wireguard"])
 app.include_router(tools_router.router, prefix="/api/tools", tags=["tools"])
 
@@ -272,7 +274,7 @@ def download_ca_cert():
         settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
 
     root = Path(__file__).parent.parent.parent
-    cert_dir = root / settings.cert_dir.lstrip("./")
+    cert_dir = root / settings.cert_dir
     for name in ("mitmproxy-ca-cert.cer", "mitmproxy-ca-cert.pem", "mitmproxy-ca.pem"):
         cert_file = cert_dir / name
         if cert_file.exists():

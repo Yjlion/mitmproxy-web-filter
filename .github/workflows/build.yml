@@ -120,6 +120,63 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: web-filter-proxy-${{ matrix.target }}.*
 
+  # Build a .deb package for each Linux target and attach it to the release.
+  # The archive job must complete first so we can reuse its bundled categories.
+  deb:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x86_64
+          - os: ubuntu-24.04-arm
+            target: linux-aarch64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refresh site category blocklists
+        shell: bash
+        run: |
+          bash scripts/update_categories.sh || echo "::warning::update_categories failed; shipping committed category lists"
+          mkdir -p categories
+
+      - name: Build .deb package
+        shell: bash
+        run: |
+          set -euxo pipefail
+          TAG="${{ inputs.tag_name || github.ref_name }}"
+          bash scripts/build_deb.sh "$TAG"
+          ls -lh webfilter-proxy_*.deb
+
+      - name: Smoke-test the .deb (install + import check)
+        shell: bash
+        run: |
+          set -eux
+          DEB="$(ls webfilter-proxy_*.deb)"
+          # apt handles dependencies (python3-venv, adduser) automatically;
+          # plain dpkg -i does not and will leave postinst without them.
+          sudo apt-get install -y "./$DEB"
+          # Verify the venv (built by postinst) can import all required modules.
+          /opt/webfilter-proxy/venv/bin/python3 -c \
+            "import mitmproxy, fastapi, uvicorn, httpx, dns, nudenet, PIL, bs4, multipart; print('deb imports OK')"
+          sudo dpkg -r webfilter-proxy
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webfilter-proxy-deb-${{ matrix.target }}
+          path: webfilter-proxy_*.deb
+
+      - name: Attach .deb to Release (tag builds and manual releases)
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          files: webfilter-proxy_*.deb
+
   # Build the single-container image and publish it to the GitHub Container
   # Registry (ghcr.io/<owner>/<repo>) on every release tag.
   docker:

@@ -29,7 +29,7 @@ def _cert_dir() -> Path:
     s = GlobalSettings()
     if _SETTINGS_PATH.exists():
         s = GlobalSettings.model_validate_json(_SETTINGS_PATH.read_text(encoding="utf-8-sig"))
-    return _PROJECT_ROOT / s.cert_dir.lstrip("./")
+    return _PROJECT_ROOT / s.cert_dir
 
 
 @router.get("/export")

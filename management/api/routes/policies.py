@@ -18,7 +18,7 @@ def _policies_dir() -> Path:
     settings = GlobalSettings()
     if cfg_path.exists():
         settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
-    d = _PROJECT_ROOT / settings.policies_dir.lstrip("./")
+    d = _PROJECT_ROOT / settings.policies_dir
     d.mkdir(parents=True, exist_ok=True)
     return d
 

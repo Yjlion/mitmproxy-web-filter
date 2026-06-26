@@ -141,7 +141,7 @@ class PolicyRouter:
                 log_blocks=_settings.log_blocks,
             )
             logstore.migrate_legacy(
-                _project_root / _settings.logs_dir.lstrip("./\\")
+                _project_root / _settings.logs_dir
             )
 
     def running(self):
@@ -152,7 +152,7 @@ class PolicyRouter:
             cats.configure(getattr(_settings, "categories_dir", "./categories"))
         except Exception:
             pass
-        policies_dir = _project_root / _settings.policies_dir.lstrip("./")
+        policies_dir = _project_root / _settings.policies_dir
         _policies = load_policies(policies_dir)
         logger.info(f"[policy_router] Loaded {len(_policies)} policies from {policies_dir}")
         # Keep a strong reference to the task. In Python 3.12+ asyncio only holds

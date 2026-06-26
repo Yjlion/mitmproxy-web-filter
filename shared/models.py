@@ -95,7 +95,7 @@ class ImageClassifierConfig(BaseModel):
 
 # Search engines that support per-engine tab blocking. Must match the "name"
 # field of the engine definitions in proxy/addons/safesearch.py.
-SAFESEARCH_ENGINES = ("google", "bing", "duckduckgo", "yahoo")
+SAFESEARCH_ENGINES = ("google", "bing", "duckduckgo", "yahoo", "youtube")
 
 
 class SafeSearchEngineConfig(BaseModel):
