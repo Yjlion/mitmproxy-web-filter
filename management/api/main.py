@@ -274,7 +274,7 @@ def download_ca_cert():
         settings = GlobalSettings.model_validate_json(cfg_path.read_text(encoding="utf-8-sig"))
 
     root = Path(__file__).parent.parent.parent
-    cert_dir = root / settings.cert_dir.lstrip("./")
+    cert_dir = root / settings.cert_dir
     for name in ("mitmproxy-ca-cert.cer", "mitmproxy-ca-cert.pem", "mitmproxy-ca.pem"):
         cert_file = cert_dir / name
         if cert_file.exists():

@@ -30,7 +30,7 @@ def _load_settings() -> GlobalSettings:
 
 def _policies_dir() -> Path:
     s = _load_settings()
-    return _PROJECT_ROOT / s.policies_dir.lstrip("./")
+    return _PROJECT_ROOT / s.policies_dir
 
 
 @router.get("")
