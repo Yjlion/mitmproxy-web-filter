@@ -1,3 +1,5 @@
+# Check out https://github.com/Yjlion/gowebfilter
+
 # WebFilter Proxy
 
 A mitmproxy-based web filtering proxy with per-source-IP policies and a web
